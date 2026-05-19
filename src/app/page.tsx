@@ -149,39 +149,232 @@ const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
     );
 };
 
-// 2. PROJECT BACKGROUND ANIMATIONS (Real Video Loops from Giphy)
-const VideoBackground = ({ src }: { src: string }) => (
-  <video 
-    autoPlay 
-    loop 
-    muted 
-    playsInline 
-    className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-700 z-0"
-    style={{ filter: 'brightness(0.7) contrast(1.2)' }}
-  >
-    <source src={src} type="video/mp4" />
-    <div className="w-full h-full bg-cyan-900/20 animate-pulse" />
-  </video>
-);
+// ============================================================
+// 2. PROJECT CARD BACKGROUND ANIMATIONS (Canvas-based, 100% reliable)
+// ============================================================
+
+// 2a. MATRIX RAIN - for Security / Blockchain projects
+const MatrixRain = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    const cols = Math.floor(canvas.width / 16);
+    const drops: number[] = Array(cols).fill(1);
+    const chars = "01ABCDEF<>{}[]#@!?アイウエオカキク";
+    let raf: number;
+    const draw = () => {
+      ctx.fillStyle = "rgba(0,0,0,0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#06b6d4";
+      ctx.font = "14px monospace";
+      drops.forEach((y, i) => {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(char, i * 16, y * 16);
+        if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      });
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-100 transition-opacity duration-700" />;
+};
+
+// 2b. NEURAL NETWORK PARTICLES - for AI / ML projects
+const NeuralNetwork = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    const nodes = Array.from({ length: 30 }, (_, i) => ({
+      x: ((i * 97) % canvas.width),
+      y: ((i * 61) % canvas.height),
+      vx: (((i * 13) % 7) - 3) * 0.3,
+      vy: (((i * 17) % 7) - 3) * 0.3,
+      r: 2 + (i % 3)
+    }));
+    let raf: number;
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      nodes.forEach(n => {
+        n.x += n.vx; n.y += n.vy;
+        if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
+        if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+      });
+      nodes.forEach((a, i) => nodes.slice(i + 1).forEach(b => {
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d < 100) {
+          ctx.strokeStyle = `rgba(6,182,212,${1 - d / 100})`;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        }
+      }));
+      nodes.forEach(n => {
+        ctx.fillStyle = "#06b6d4";
+        ctx.shadowColor = "#06b6d4";
+        ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-100 transition-opacity duration-700" />;
+};
+
+// 2c. DNA DOUBLE HELIX - for Health / Medical projects
+const DNAHelix = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    let t = 0;
+    let raf: number;
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      for (let i = 0; i < 40; i++) {
+        const y = (i / 40) * canvas.height;
+        const angle = (i / 40) * Math.PI * 4 + t;
+        const x1 = cx + Math.cos(angle) * 50;
+        const x2 = cx + Math.cos(angle + Math.PI) * 50;
+        ctx.beginPath();
+        ctx.arc(x1, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(6,182,212,${0.5 + Math.cos(angle) * 0.5})`;
+        ctx.shadowColor = "#06b6d4"; ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x2, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(100,255,218,${0.5 + Math.cos(angle + Math.PI) * 0.5})`;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        if (i % 4 === 0) {
+          ctx.strokeStyle = "rgba(6,182,212,0.3)";
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
+        }
+      }
+      t += 0.03;
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-100 transition-opacity duration-700" />;
+};
+
+// 2d. CIRCUIT BOARD DATA FLOW - for Backend / API / Full Stack
+const CircuitFlow = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    const paths = Array.from({ length: 12 }, (_, i) => ({
+      x: 0, y: ((i * canvas.height) / 12),
+      speed: 1 + (i % 4) * 0.5,
+      len: 40 + (i * 13) % 80,
+      color: i % 3 === 0 ? "#06b6d4" : i % 3 === 1 ? "#a78bfa" : "#34d399"
+    }));
+    let raf: number;
+    const draw = () => {
+      ctx.fillStyle = "rgba(0,0,0,0.08)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      paths.forEach(p => {
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = p.color; ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.moveTo(p.x - p.len, p.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        p.x += p.speed * 2;
+        if (p.x > canvas.width + p.len) p.x = -p.len;
+      });
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-100 transition-opacity duration-700" />;
+};
+
+// 2e. FLOATING GEOMETRIC SHAPES - for UI / Frontend projects
+const GeometricFloat = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    const shapes = Array.from({ length: 10 }, (_, i) => ({
+      x: ((i * 73) % canvas.width),
+      y: ((i * 41) % canvas.height),
+      size: 15 + (i * 11) % 30,
+      angle: 0,
+      speed: 0.005 + (i % 5) * 0.003,
+      sides: [3, 4, 6][i % 3]
+    }));
+    let t = 0; let raf: number;
+    const drawPoly = (x: number, y: number, r: number, sides: number, angle: number) => {
+      ctx.beginPath();
+      for (let i = 0; i <= sides; i++) {
+        const a = (i / sides) * Math.PI * 2 + angle;
+        i === 0 ? ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r)
+                : ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+      }
+      ctx.closePath();
+    };
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      shapes.forEach((s, i) => {
+        s.y -= 0.3; s.angle += s.speed;
+        if (s.y + s.size < 0) s.y = canvas.height + s.size;
+        ctx.strokeStyle = `rgba(6,182,212,${0.3 + Math.sin(t + i) * 0.2})`;
+        ctx.lineWidth = 1;
+        ctx.shadowColor = "#06b6d4"; ctx.shadowBlur = 5;
+        drawPoly(s.x, s.y, s.size, s.sides, s.angle);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      });
+      t += 0.05;
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-100 transition-opacity duration-700" />;
+};
 
 const GetCardAnimation = (tech: string) => {
   const t = tech.toLowerCase();
-  
-  if (t.includes("security") || t.includes("web3") || t.includes("solidity")) {
-    return <VideoBackground src="https://media.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.mp4" />;
-  }
-  if (t.includes("ml") || t.includes("ai") || t.includes("cv") || t.includes("nlp")) {
-    return <VideoBackground src="https://media.giphy.com/media/l41YmxZHRBmsW71ks/giphy.mp4" />;
-  }
-  if (t.includes("health") || t.includes("medical")) {
-    return <VideoBackground src="https://media.giphy.com/media/13HgwGsXF0aiGY/giphy.mp4" />;
-  }
-  if (t.includes("backend") || t.includes("api") || t.includes("data")) {
-    return <VideoBackground src="https://media.giphy.com/media/26tn33aiTi1jNDsJi/giphy.mp4" />;
-  }
-  
-  // Default fallback video
-  return <VideoBackground src="https://media.giphy.com/media/3o7TKrEzvPNBgZ9XHO/giphy.mp4" />;
+  if (t.includes("security") || t.includes("web3") || t.includes("solidity")) return <MatrixRain />;
+  if (t.includes("ml") || t.includes("ai") || t.includes("cv") || t.includes("nlp") || t.includes("python")) return <NeuralNetwork />;
+  if (t.includes("health") || t.includes("medical")) return <DNAHelix />;
+  if (t.includes("backend") || t.includes("api") || t.includes("full stack") || t.includes("full")) return <CircuitFlow />;
+  return <GeometricFloat />;  // Frontend, Next.js, Web App, Utility
 };
 
 // 3. MAGNETIC BUTTON WRAPPER
@@ -381,8 +574,8 @@ export default function Home() {
           }
         });
 
-        tl.fromTo(content, { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" })
-          .fromTo(bullets, { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" }, "-=0.4");
+        tl.fromTo(content, { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.8, ease: "power3.out" });
+        tl.fromTo(bullets, { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" }, "-=0.4");
       });
 
       return () => {

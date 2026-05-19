@@ -150,232 +150,265 @@ const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
 };
 
 // ============================================================
-// 2. PROJECT CARD BACKGROUND ANIMATIONS (Canvas-based, 100% reliable)
+// 2. PROJECT CARD BACKGROUND ANIMATIONS (one component, 15 unique draws)
 // ============================================================
-
-// 2a. MATRIX RAIN - for Security / Blockchain projects
-const MatrixRain = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+const ProjectCanvas = ({ index }: { index: number }) => {
+  const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    const cols = Math.floor(canvas.width / 16);
-    const drops: number[] = Array(cols).fill(1);
-    const chars = "01ABCDEF<>{}[]#@!?アイウエオカキク";
-    let raf: number;
-    const draw = () => {
-      ctx.fillStyle = "rgba(0,0,0,0.05)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#06b6d4";
-      ctx.font = "14px monospace";
-      drops.forEach((y, i) => {
-        const char = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(char, i * 16, y * 16);
-        if (y * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
-        drops[i]++;
-      });
-      raf = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-100 transition-opacity duration-700" />;
-};
+    const c = ref.current; if (!c) return;
+    const ctx = c.getContext("2d"); if (!ctx) return;
+    c.width = c.offsetWidth; c.height = c.offsetHeight;
+    const W = c.width, H = c.height;
+    let raf: number, t = 0;
 
-// 2b. NEURAL NETWORK PARTICLES - for AI / ML projects
-const NeuralNetwork = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    const nodes = Array.from({ length: 30 }, (_, i) => ({
-      x: ((i * 97) % canvas.width),
-      y: ((i * 61) % canvas.height),
-      vx: (((i * 13) % 7) - 3) * 0.3,
-      vy: (((i * 17) % 7) - 3) * 0.3,
-      r: 2 + (i % 3)
-    }));
-    let raf: number;
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      nodes.forEach(n => {
-        n.x += n.vx; n.y += n.vy;
-        if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
-        if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
-      });
-      nodes.forEach((a, i) => nodes.slice(i + 1).forEach(b => {
-        const d = Math.hypot(a.x - b.x, a.y - b.y);
-        if (d < 100) {
-          ctx.strokeStyle = `rgba(6,182,212,${1 - d / 100})`;
-          ctx.lineWidth = 0.5;
-          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-        }
-      }));
-      nodes.forEach(n => {
-        ctx.fillStyle = "#06b6d4";
-        ctx.shadowColor = "#06b6d4";
-        ctx.shadowBlur = 8;
-        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fill();
-        ctx.shadowBlur = 0;
-      });
-      raf = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-100 transition-opacity duration-700" />;
-};
+    // --- shared helpers ---
+    const clr = (alpha=0.07) => { ctx.fillStyle=`rgba(0,0,0,${alpha})`; ctx.fillRect(0,0,W,H); };
+    const glow = (col: string, blur=8) => { ctx.shadowColor=col; ctx.shadowBlur=blur; };
+    const noGlow = () => { ctx.shadowBlur=0; };
 
-// 2c. DNA DOUBLE HELIX - for Health / Medical projects
-const DNAHelix = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    let t = 0;
-    let raf: number;
+    // 0 - AI Threat Detection: Red radar sweep + blinking targets
+    const drops0 = Array.from({length:Math.floor(W/18)},()=>0);
+    const targets0 = Array.from({length:5},(_,i)=>({x:40+(i*W/5),y:40+(i*30)%H}));
+    // 1 - Blockchain Voting: Hex blocks chain
+    // 2 - Healthcare Chatbot: EKG heartbeat
+    const ekg: number[] = []; for(let i=0;i<W;i++) ekg.push(H/2);
+    // 3 - Fake News Detection: Text scan lines
+    // 4 - Dynamic Face Lift: Face mesh grid
+    // 5 - NetGuard: Shield + firewall pulses
+    // 6 - Portfolio Kinju: Neon cubes floating
+    const cubes = Array.from({length:8},(_,i)=>({x:(i*73)%W,y:(i*55)%H,s:20+(i*11)%20,a:i*0.4,v:0.4+(i%4)*0.2}));
+    // 7 - InspectFlow Sync: Pipeline nodes
+    const pipes = Array.from({length:6},(_,i)=>({x:0,y:(i+1)*(H/7),p:0}));
+    // 8 - CXBulk: Animated bar chart
+    const bars = Array.from({length:10},(_,i)=>({h:(i*37)%70+20,target:(i*53)%80+20}));
+    // 9 - Codexservice: Brackets typing
+    const code = ["{}","[]",'</>','fn()','API','REST','POST','GET'];
+    // 10 - QR Code: Pixel grid flicker
+    const qr = Array.from({length:100},(_,i)=>((i*73+i*i*13)%3===0?1:0));
+    // 11 - Digivualt: Vault tumbler rings
+    // 12 - Gym Pro: Progress rings
+    const rings = [{r:60,spd:0.01,col:'#06b6d4'},{r:45,spd:-0.015,col:'#a78bfa'},{r:30,spd:0.02,col:'#34d399'}];
+    // 13 - Lifeconnect: Social particle web
+    const soc = Array.from({length:20},(_,i)=>({x:(i*97)%W,y:(i*61)%H,vx:(((i*13)%7)-3)*0.4,vy:(((i*17)%7)-3)*0.4}));
+    // 14 - Gov Project: Rotating star emblem
+
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const cx = canvas.width / 2;
-      for (let i = 0; i < 40; i++) {
-        const y = (i / 40) * canvas.height;
-        const angle = (i / 40) * Math.PI * 4 + t;
-        const x1 = cx + Math.cos(angle) * 50;
-        const x2 = cx + Math.cos(angle + Math.PI) * 50;
-        ctx.beginPath();
-        ctx.arc(x1, y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(6,182,212,${0.5 + Math.cos(angle) * 0.5})`;
-        ctx.shadowColor = "#06b6d4"; ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(x2, y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(100,255,218,${0.5 + Math.cos(angle + Math.PI) * 0.5})`;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        if (i % 4 === 0) {
-          ctx.strokeStyle = "rgba(6,182,212,0.3)";
-          ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
-        }
-      }
       t += 0.03;
-      raf = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-100 transition-opacity duration-700" />;
-};
-
-// 2d. CIRCUIT BOARD DATA FLOW - for Backend / API / Full Stack
-const CircuitFlow = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    const paths = Array.from({ length: 12 }, (_, i) => ({
-      x: 0, y: ((i * canvas.height) / 12),
-      speed: 1 + (i % 4) * 0.5,
-      len: 40 + (i * 13) % 80,
-      color: i % 3 === 0 ? "#06b6d4" : i % 3 === 1 ? "#a78bfa" : "#34d399"
-    }));
-    let raf: number;
-    const draw = () => {
-      ctx.fillStyle = "rgba(0,0,0,0.08)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      paths.forEach(p => {
-        ctx.strokeStyle = p.color;
-        ctx.lineWidth = 2;
-        ctx.shadowColor = p.color; ctx.shadowBlur = 6;
-        ctx.beginPath();
-        ctx.moveTo(p.x - p.len, p.y);
-        ctx.lineTo(p.x, p.y);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        p.x += p.speed * 2;
-        if (p.x > canvas.width + p.len) p.x = -p.len;
-      });
-      raf = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-100 transition-opacity duration-700" />;
-};
-
-// 2e. FLOATING GEOMETRIC SHAPES - for UI / Frontend projects
-const GeometricFloat = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    const shapes = Array.from({ length: 10 }, (_, i) => ({
-      x: ((i * 73) % canvas.width),
-      y: ((i * 41) % canvas.height),
-      size: 15 + (i * 11) % 30,
-      angle: 0,
-      speed: 0.005 + (i % 5) * 0.003,
-      sides: [3, 4, 6][i % 3]
-    }));
-    let t = 0; let raf: number;
-    const drawPoly = (x: number, y: number, r: number, sides: number, angle: number) => {
-      ctx.beginPath();
-      for (let i = 0; i <= sides; i++) {
-        const a = (i / sides) * Math.PI * 2 + angle;
-        i === 0 ? ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r)
-                : ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+      switch(index) {
+        case 0: { // AI Threat Detection - Red radar
+          clr(0.04);
+          const cx=W/2,cy=H/2,maxR=Math.min(W,H)*0.45;
+          ctx.strokeStyle=`rgba(239,68,68,0.15)`; ctx.lineWidth=1;
+          [0.3,0.6,1].forEach(f=>{ ctx.beginPath();ctx.arc(cx,cy,maxR*f,0,Math.PI*2);ctx.stroke(); });
+          const sweep=t%( Math.PI*2);
+          const grad=ctx.createConicGradient(sweep,cx,cy);
+          grad.addColorStop(0,'rgba(239,68,68,0.6)'); grad.addColorStop(0.15,'rgba(239,68,68,0)');
+          grad.addColorStop(1,'rgba(239,68,68,0)');
+          ctx.fillStyle=grad; ctx.beginPath();ctx.arc(cx,cy,maxR,0,Math.PI*2);ctx.fill();
+          targets0.forEach(tg=>{ if(Math.abs(Math.atan2(tg.y-cy,tg.x-cx)-sweep)<0.3){ glow('#ef4444',15); ctx.fillStyle='#ef4444'; ctx.beginPath();ctx.arc(tg.x,tg.y,4,0,Math.PI*2);ctx.fill();noGlow(); } });
+          ctx.strokeStyle='rgba(239,68,68,0.8)'; ctx.lineWidth=2;
+          ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(sweep)*maxR,cy+Math.sin(sweep)*maxR);ctx.stroke();
+          break;
+        }
+        case 1: { // Blockchain Voting - Hex blocks
+          clr(0.06);
+          const hexes=[{x:W*0.2,y:H*0.4},{x:W*0.5,y:H*0.3},{x:W*0.8,y:H*0.4},{x:W*0.35,y:H*0.65},{x:W*0.65,y:H*0.65}];
+          hexes.forEach((h,i)=>{
+            const pulse=0.5+0.5*Math.sin(t*2+i);
+            ctx.strokeStyle=`rgba(99,102,241,${0.4+pulse*0.5})`;
+            glow('#6366f1',10*pulse); ctx.lineWidth=2;
+            ctx.beginPath();
+            for(let s=0;s<6;s++){const a=s*Math.PI/3;s===0?ctx.moveTo(h.x+25*Math.cos(a),h.y+25*Math.sin(a)):ctx.lineTo(h.x+25*Math.cos(a),h.y+25*Math.sin(a));}
+            ctx.closePath();ctx.stroke();
+            ctx.fillStyle=`rgba(99,102,241,${0.1+pulse*0.1})`;ctx.fill();
+            noGlow();
+          });
+          hexes.forEach((a,i)=>{ if(i<hexes.length-1){const b=hexes[i+1]; ctx.strokeStyle='rgba(99,102,241,0.3)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);} });
+          break;
+        }
+        case 2: { // Healthcare Chatbot - EKG heartbeat
+          clr(0.08);
+          for(let i=ekg.length-1;i>0;i--) ekg[i]=ekg[i-1];
+          const pos=Math.floor(t*30)%60;
+          ekg[0]= pos<5? H/2-80*Math.sin(pos*Math.PI/5) : pos<8? H/2+40*Math.sin((pos-5)*Math.PI/3) : H/2;
+          ctx.strokeStyle='#34d399'; ctx.lineWidth=2;
+          glow('#34d399',10);
+          ctx.beginPath();
+          ekg.forEach((y,i)=>i===0?ctx.moveTo(W-i*2,y):ctx.lineTo(W-i*2,y));
+          ctx.stroke(); noGlow();
+          ctx.fillStyle='#34d399'; ctx.font='11px monospace';
+          ctx.fillText('PULSE: 72 BPM',10,20); ctx.fillText('O2: 98%',10,38);
+          break;
+        }
+        case 3: { // Fake News Detection - Text scan
+          clr(0.05);
+          const lines=['ANALYZING: input_text_v2.txt','CHECKING SOURCE CREDIBILITY...','BIAS SCORE: 0.12','NLP VECTORS: MATCHING...','VERDICT: FALSE ✗','CONFIDENCE: 97.3%'];
+          lines.forEach((l,i)=>{
+            const alpha=0.3+0.7*Math.abs(Math.sin(t+i));
+            ctx.fillStyle=i===4?`rgba(239,68,68,${alpha})`:`rgba(6,182,212,${alpha})`;
+            ctx.font='11px monospace';
+            ctx.fillText(l,10,30+i*28);
+          });
+          const scanY=(t*80)%H;
+          ctx.strokeStyle='rgba(6,182,212,0.4)'; ctx.lineWidth=1;
+          ctx.beginPath();ctx.moveTo(0,scanY);ctx.lineTo(W,scanY);ctx.stroke();
+          break;
+        }
+        case 4: { // Dynamic Face Lift - Face mesh
+          clr(0.06);
+          const cx=W/2,cy=H/2;
+          const pts=Array.from({length:24},(_,i)=>{const a=i/24*Math.PI*2;const r=80+20*Math.sin(t+i);return{x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r*0.75};});
+          glow('#06b6d4',6); ctx.strokeStyle='rgba(6,182,212,0.5)'; ctx.lineWidth=1;
+          pts.forEach((p,i)=>{ const n=pts[(i+1)%pts.length]; ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(n.x,n.y);ctx.stroke(); if(i%3===0){const m=pts[(i+8)%pts.length];ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(m.x,m.y);ctx.stroke();} });
+          pts.forEach(p=>{ ctx.fillStyle='#06b6d4';ctx.beginPath();ctx.arc(p.x,p.y,2,0,Math.PI*2);ctx.fill(); });
+          noGlow();
+          break;
+        }
+        case 5: { // NetGuard - Shield + firewall
+          clr(0.05);
+          const cx=W/2,cy=H/2;
+          const pulse=0.5+0.5*Math.sin(t*2);
+          glow('#f59e0b',20*pulse);
+          ctx.strokeStyle=`rgba(245,158,11,${0.5+pulse*0.5})`; ctx.lineWidth=3;
+          ctx.beginPath();ctx.moveTo(cx,cy-70);ctx.lineTo(cx+50,cy-40);ctx.lineTo(cx+50,cy+20);ctx.quadraticCurveTo(cx+50,cy+60,cx,cy+75);ctx.quadraticCurveTo(cx-50,cy+60,cx-50,cy+20);ctx.lineTo(cx-50,cy-40);ctx.closePath();ctx.stroke();
+          ctx.fillStyle=`rgba(245,158,11,${0.05+pulse*0.08})`;ctx.fill();
+          noGlow();
+          [1,2,3].forEach(r=>{ ctx.strokeStyle=`rgba(245,158,11,${0.1*pulse})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,r*40+10*Math.sin(t+r),0,Math.PI*2);ctx.stroke(); });
+          break;
+        }
+        case 6: { // Portfolio Kinju - Neon cubes
+          clr(0.06);
+          cubes.forEach(cu=>{
+            cu.y-=cu.v; if(cu.y<-cu.s) cu.y=H+cu.s;
+            cu.a+=0.01;
+            const hs=cu.s/2;
+            const alpha=0.4+0.3*Math.sin(t+cu.x);
+            glow('#ec4899',8); ctx.strokeStyle=`rgba(236,72,153,${alpha})`; ctx.lineWidth=1.5;
+            ctx.save();ctx.translate(cu.x,cu.y);ctx.rotate(cu.a);
+            ctx.strokeRect(-hs,-hs,cu.s,cu.s);
+            ctx.restore(); noGlow();
+          });
+          break;
+        }
+        case 7: { // InspectFlow Sync - Pipeline
+          clr(0.05);
+          pipes.forEach((p,i)=>{
+            p.p=(p.p+1.5)%W;
+            ctx.strokeStyle=`rgba(6,182,212,0.2)`;ctx.lineWidth=1;
+            ctx.beginPath();ctx.moveTo(0,p.y);ctx.lineTo(W,p.y);ctx.stroke();
+            glow('#06b6d4',12); ctx.strokeStyle='#06b6d4'; ctx.lineWidth=3;
+            ctx.beginPath();ctx.moveTo(p.p-30,p.y);ctx.lineTo(p.p,p.y);ctx.stroke();
+            ctx.fillStyle='#06b6d4';ctx.beginPath();ctx.arc(p.p,p.y,5,0,Math.PI*2);ctx.fill();
+            noGlow();
+            ctx.fillStyle='rgba(6,182,212,0.6)';ctx.font='10px monospace';
+            ctx.fillText(['INPUT','PARSE','VALID','SYNC','QUEUE','OUT'][i],10,p.y-6);
+          });
+          break;
+        }
+        case 8: { // CXBulk - Bar chart
+          clr(0.07);
+          bars.forEach((b,i)=>{
+            b.h+=(b.target-b.h)*0.03;
+            if(Math.abs(b.h-b.target)<1){b.target=20+(i*37+Math.floor(t*10))%80;}
+            const x=15+i*(W-30)/10, bh=b.h/100*H*0.7;
+            const grad=ctx.createLinearGradient(0,H-bh,0,H);
+            grad.addColorStop(0,'rgba(6,182,212,0.9)');grad.addColorStop(1,'rgba(6,182,212,0.2)');
+            ctx.fillStyle=grad;
+            glow('#06b6d4',6); ctx.fillRect(x,H-bh,18,bh); noGlow();
+          });
+          break;
+        }
+        case 9: { // Codexservice - Code typing
+          clr(0.04);
+          const line=Math.floor(t/1.5)%code.length;
+          code.forEach((l,i)=>{
+            const alpha= i<=line? 0.9 : 0.2;
+            ctx.fillStyle=i%2===0?`rgba(6,182,212,${alpha})`:`rgba(167,139,250,${alpha})`;
+            ctx.font='bold 22px monospace';
+            ctx.fillText(l, W/2-30, 60+i*55);
+          });
+          const curX=W/2-30+(i=>i<code[line%code.length].length?i*13:code[line%code.length].length*13)(Math.floor((t%1.5)/1.5*code[line%code.length].length));
+          ctx.fillStyle='rgba(6,182,212,0.9)';ctx.fillRect(W/2-30+code[line].length*13,60+line*55+5,2,20);
+          break;
+        }
+        case 10: { // QR Code - Pixel grid
+          clr(0.03);
+          const cell=Math.floor(W/10);
+          qr.forEach((v,i)=>{
+            const row=Math.floor(i/10),col=i%10;
+            const flicker=Math.sin(t*3+i*0.7)>0.5?v:qr[(i+13)%100];
+            ctx.fillStyle=flicker?`rgba(6,182,212,0.8)`:'rgba(6,182,212,0.05)';
+            ctx.fillRect(col*cell,row*cell,cell-2,cell-2);
+          });
+          break;
+        }
+        case 11: { // Digivualt - Vault rings
+          clr(0.05);
+          const cx=W/2,cy=H/2;
+          [80,58,36].forEach((r,i)=>{
+            const angle=t*(i%2===0?0.5:-0.7)*(i+1);
+            ctx.strokeStyle=['#f59e0b','#06b6d4','#a78bfa'][i]; ctx.lineWidth=6;
+            glow(['#f59e0b','#06b6d4','#a78bfa'][i],12);
+            ctx.beginPath();ctx.arc(cx,cy,r,angle,angle+Math.PI*1.4);ctx.stroke();
+            ctx.beginPath();ctx.arc(cx,cy,r,angle+Math.PI,angle+Math.PI*2.4);ctx.stroke();
+            noGlow();
+          });
+          ctx.fillStyle='rgba(245,158,11,0.8)';ctx.font='bold 18px monospace';
+          ctx.textAlign='center';ctx.fillText('🔒',cx,cy+7);ctx.textAlign='left';
+          break;
+        }
+        case 12: { // Gym Pro - Progress rings
+          clr(0.05);
+          const cx=W/2,cy=H/2;
+          rings.forEach((rg,i)=>{
+            const progress=0.5+0.5*Math.sin(t*rg.spd*30+i);
+            ctx.strokeStyle=`rgba(0,0,0,0.3)`; ctx.lineWidth=8;
+            ctx.beginPath();ctx.arc(cx,cy,rg.r,0,Math.PI*2);ctx.stroke();
+            glow(rg.col,10); ctx.strokeStyle=rg.col; ctx.lineWidth=8;
+            ctx.beginPath();ctx.arc(cx,cy,rg.r,-Math.PI/2,-Math.PI/2+progress*Math.PI*2);ctx.stroke();
+            noGlow();
+          });
+          ctx.fillStyle='rgba(6,182,212,0.9)';ctx.font='bold 14px monospace';ctx.textAlign='center';
+          ctx.fillText('FITNESS',cx,cy+5);ctx.textAlign='left';
+          break;
+        }
+        case 13: { // Lifeconnect - Social web
+          clr(0.06);
+          soc.forEach(n=>{ n.x+=n.vx;n.y+=n.vy; if(n.x<0||n.x>W)n.vx*=-1; if(n.y<0||n.y>H)n.vy*=-1; });
+          soc.forEach((a,i)=>soc.slice(i+1).forEach(b=>{
+            const d=Math.hypot(a.x-b.x,a.y-b.y);
+            if(d<90){ctx.strokeStyle=`rgba(167,139,250,${1-d/90})`;ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+          }));
+          soc.forEach((n,i)=>{ glow('#a78bfa',8);ctx.fillStyle=i%5===0?'#ec4899':'#a78bfa';ctx.beginPath();ctx.arc(n.x,n.y,i%5===0?5:3,0,Math.PI*2);ctx.fill(); });
+          noGlow();
+          break;
+        }
+        case 14: { // Gov Project - Star emblem
+          clr(0.05);
+          const cx=W/2,cy=H/2;
+          glow('#f59e0b',15); ctx.strokeStyle='rgba(245,158,11,0.7)'; ctx.lineWidth=2;
+          for(let s=0;s<5;s++){ const a=s*Math.PI*2/5-Math.PI/2+t*0.2; const a2=a+Math.PI/5; ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*70,cy+Math.sin(a)*70);ctx.lineTo(cx+Math.cos(a2)*30,cy+Math.sin(a2)*30);ctx.stroke(); }
+          [90,110].forEach(r=>{ ctx.strokeStyle='rgba(245,158,11,0.3)';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke(); });
+          noGlow();
+          ctx.fillStyle='rgba(245,158,11,0.8)';ctx.font='10px monospace';ctx.textAlign='center';
+          ctx.fillText('PUBLIC SECTOR',cx,H-15);ctx.textAlign='left';
+          break;
+        }
       }
-      ctx.closePath();
-    };
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      shapes.forEach((s, i) => {
-        s.y -= 0.3; s.angle += s.speed;
-        if (s.y + s.size < 0) s.y = canvas.height + s.size;
-        ctx.strokeStyle = `rgba(6,182,212,${0.3 + Math.sin(t + i) * 0.2})`;
-        ctx.lineWidth = 1;
-        ctx.shadowColor = "#06b6d4"; ctx.shadowBlur = 5;
-        drawPoly(s.x, s.y, s.size, s.sides, s.angle);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      });
-      t += 0.05;
       raf = requestAnimationFrame(draw);
     };
     draw();
     return () => cancelAnimationFrame(raf);
-  }, []);
-  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-60 group-hover:opacity-100 transition-opacity duration-700" />;
+  }, [index]);
+  return <canvas ref={ref} className="absolute inset-0 w-full h-full opacity-50 group-hover:opacity-90 transition-opacity duration-700" />;
 };
 
-const GetCardAnimation = (tech: string) => {
-  const t = tech.toLowerCase();
-  if (t.includes("security") || t.includes("web3") || t.includes("solidity")) return <MatrixRain />;
-  if (t.includes("ml") || t.includes("ai") || t.includes("cv") || t.includes("nlp") || t.includes("python")) return <NeuralNetwork />;
-  if (t.includes("health") || t.includes("medical")) return <DNAHelix />;
-  if (t.includes("backend") || t.includes("api") || t.includes("full stack") || t.includes("full")) return <CircuitFlow />;
-  return <GeometricFloat />;  // Frontend, Next.js, Web App, Utility
-};
+const GetCardAnimation = (_tech: string, index: number) => <ProjectCanvas index={index} />;
+
+// ============================================================
+// 3.PLACEHOLDER (was GeometricFloat end marker)
+// ============================================================
+const _placeholder = 0; void _placeholder;
 
 // 3. MAGNETIC BUTTON WRAPPER
 const MagneticElement = ({ children, className }: { children: React.ReactNode, className?: string }) => {
@@ -689,7 +722,7 @@ export default function Home() {
                     >
                         {/* Video Background */}
                         <div className="absolute inset-0 z-0 pointer-events-none bg-black">
-                            {GetCardAnimation(p.tech)}
+                            {GetCardAnimation(p.tech, i)}
                             <div className="absolute inset-0 bg-black/60 group-hover:bg-black/20 transition-colors duration-500" />
                         </div>
 

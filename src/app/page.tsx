@@ -150,260 +150,428 @@ const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
 };
 
 // ============================================================
-// 2. PROJECT CARD BACKGROUND ANIMATIONS (one component, 15 unique draws)
+// 2. PROJECT CARD BACKGROUND ANIMATIONS (Stunning Cyber-OS HUD System)
 // ============================================================
-const ProjectCanvas = ({ index }: { index: number }) => {
-  const ref = useRef<HTMLCanvasElement>(null);
+const PROJECT_THEMES = [
+  { // 0: AI Threat Detection
+    primary: "rgb(239, 68, 68)", // Red
+    glow: "rgba(239, 68, 68, 0.15)",
+    bgGrad: "from-red-950/20 via-black to-black",
+    orb1: "bg-red-500/10",
+    orb2: "bg-rose-500/5",
+    accent: "text-red-500"
+  },
+  { // 1: Blockchain Voting
+    primary: "rgb(99, 102, 241)", // Indigo
+    glow: "rgba(99, 102, 241, 0.15)",
+    bgGrad: "from-indigo-950/20 via-black to-black",
+    orb1: "bg-indigo-500/10",
+    orb2: "bg-violet-500/5",
+    accent: "text-indigo-400"
+  },
+  { // 2: Healthcare Chatbot
+    primary: "rgb(16, 185, 129)", // Emerald
+    glow: "rgba(16, 185, 129, 0.15)",
+    bgGrad: "from-emerald-950/20 via-black to-black",
+    orb1: "bg-emerald-500/10",
+    orb2: "bg-teal-500/5",
+    accent: "text-emerald-400"
+  },
+  { // 3: Fake News Detection
+    primary: "rgb(6, 182, 212)", // Cyan
+    glow: "rgba(6, 182, 212, 0.15)",
+    bgGrad: "from-cyan-950/20 via-black to-black",
+    orb1: "bg-cyan-500/10",
+    orb2: "bg-sky-500/5",
+    accent: "text-cyan-400"
+  },
+  { // 4: Dynamic Face Lift
+    primary: "rgb(13, 148, 136)", // Teal
+    glow: "rgba(13, 148, 136, 0.15)",
+    bgGrad: "from-teal-950/20 via-black to-black",
+    orb1: "bg-teal-500/10",
+    orb2: "bg-emerald-500/5",
+    accent: "text-teal-400"
+  },
+  { // 5: NetGuard
+    primary: "rgb(245, 158, 11)", // Amber
+    glow: "rgba(245, 158, 11, 0.15)",
+    bgGrad: "from-amber-950/20 via-black to-black",
+    orb1: "bg-amber-500/10",
+    orb2: "bg-orange-500/5",
+    accent: "text-amber-500"
+  },
+  { // 6: Portfolio Kinju
+    primary: "rgb(236, 72, 153)", // Pink
+    glow: "rgba(236, 72, 153, 0.15)",
+    bgGrad: "from-pink-950/20 via-black to-black",
+    orb1: "bg-pink-500/10",
+    orb2: "bg-fuchsia-500/5",
+    accent: "text-pink-400"
+  },
+  { // 7: InspectFlow Sync
+    primary: "rgb(139, 92, 246)", // Violet
+    glow: "rgba(139, 92, 246, 0.15)",
+    bgGrad: "from-violet-950/20 via-black to-black",
+    orb1: "bg-violet-500/10",
+    orb2: "bg-purple-500/5",
+    accent: "text-violet-400"
+  },
+  { // 8: CXBulk
+    primary: "rgb(244, 63, 94)", // Rose
+    glow: "rgba(244, 63, 94, 0.15)",
+    bgGrad: "from-rose-950/20 via-black to-black",
+    orb1: "bg-rose-500/10",
+    orb2: "bg-pink-500/5",
+    accent: "text-rose-400"
+  },
+  { // 9: Codexservice
+    primary: "rgb(132, 204, 22)", // Lime
+    glow: "rgba(132, 204, 22, 0.15)",
+    bgGrad: "from-lime-950/20 via-black to-black",
+    orb1: "bg-lime-500/10",
+    orb2: "bg-green-500/5",
+    accent: "text-lime-400"
+  },
+  { // 10: QR Code Page
+    primary: "rgb(14, 165, 233)", // Sky
+    glow: "rgba(14, 165, 233, 0.15)",
+    bgGrad: "from-sky-950/20 via-black to-black",
+    orb1: "bg-sky-500/10",
+    orb2: "bg-blue-500/5",
+    accent: "text-sky-400"
+  },
+  { // 11: Digivualt
+    primary: "rgb(234, 179, 8)", // Gold
+    glow: "rgba(234, 179, 8, 0.15)",
+    bgGrad: "from-yellow-950/20 via-black to-black",
+    orb1: "bg-yellow-500/10",
+    orb2: "bg-amber-500/5",
+    accent: "text-yellow-400"
+  },
+  { // 12: Gym Pro System
+    primary: "rgb(249, 115, 22)", // Orange
+    glow: "rgba(249, 115, 22, 0.15)",
+    bgGrad: "from-orange-950/20 via-black to-black",
+    orb1: "bg-orange-500/10",
+    orb2: "bg-red-500/5",
+    accent: "text-orange-400"
+  },
+  { // 13: Lifeconnect
+    primary: "rgb(244, 63, 94)", // Rose
+    glow: "rgba(244, 63, 94, 0.15)",
+    bgGrad: "from-rose-950/20 via-black to-black",
+    orb1: "bg-rose-500/10",
+    orb2: "bg-indigo-500/5",
+    accent: "text-rose-400"
+  },
+  { // 14: Gov Project
+    primary: "rgb(59, 130, 246)", // Blue
+    glow: "rgba(59, 130, 246, 0.15)",
+    bgGrad: "from-blue-950/20 via-black to-black",
+    orb1: "bg-blue-500/10",
+    orb2: "bg-amber-500/5",
+    accent: "text-blue-400"
+  }
+];
+
+const ProjectBg = ({ index }: { index: number }) => {
+  const theme = PROJECT_THEMES[index % PROJECT_THEMES.length];
+  const [pulse, setPulse] = useState(true);
+
   useEffect(() => {
-    const c = ref.current; if (!c) return;
-    const ctx = c.getContext("2d"); if (!ctx) return;
-    c.width = c.offsetWidth; c.height = c.offsetHeight;
-    const W = c.width, H = c.height;
-    let raf: number, t = 0;
+    const timer = setInterval(() => {
+      setPulse(p => !p);
+    }, 1500);
+    return () => clearInterval(timer);
+  }, []);
 
-    // --- shared helpers ---
-    const clr = (alpha=0.07) => { ctx.fillStyle=`rgba(0,0,0,${alpha})`; ctx.fillRect(0,0,W,H); };
-    const glow = (col: string, blur=8) => { ctx.shadowColor=col; ctx.shadowBlur=blur; };
-    const noGlow = () => { ctx.shadowBlur=0; };
+  // Unique Dynamic Telemetry widgets for each card
+  const renderTelemetry = () => {
+    switch (index) {
+      case 0: // AI Threat Detection - Threat Coordinates + Circular Radar Sweep
+        return (
+          <div className="absolute inset-0 flex flex-col justify-center items-center p-6 select-none opacity-40 group-hover:opacity-85 transition-opacity duration-500">
+            <svg className="w-32 h-32 text-red-500/40 group-hover:text-red-500/80 transition-colors duration-500 animate-spin" style={{ animationDuration: '8s' }} viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" />
+              <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="1" />
+              <path d="M 50 5 A 45 45 0 0 1 95 50 L 50 50 Z" fill="url(#radar-sweep)" />
+              <defs>
+                <radialGradient id="radar-sweep" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="rgb(239, 68, 68)" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="rgb(239, 68, 68)" stopOpacity="0" />
+                </radialGradient>
+              </defs>
+            </svg>
+            <div className="mt-4 font-mono text-[9px] text-red-500/80 space-y-1 text-center bg-black/60 p-2 border border-red-500/20 backdrop-blur-sm rounded">
+              <div className="flex justify-between gap-4"><span>LOC_X: 47.92</span><span>LOC_Y: 19.34</span></div>
+              <div className="text-[8px] animate-pulse text-red-400 font-bold">● SYSTEM_ALERT: INTRUSION_PREVENTED</div>
+            </div>
+          </div>
+        );
+      case 1: // Blockchain Voting - Hexagonal cluster block chain
+        return (
+          <div className="absolute inset-0 flex justify-center items-center opacity-40 group-hover:opacity-80 transition-opacity duration-500">
+            <svg className="w-36 h-36 text-indigo-500/40 group-hover:text-indigo-400/80 transition-colors" viewBox="0 0 100 100">
+              {/* Floating hex modules */}
+              <polygon points="50,15 80,32.5 80,67.5 50,85 20,67.5 20,32.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" />
+              <polygon points="50,30 70,41.5 70,65 50,76.5 30,65 30,41.5" fill="none" stroke="currentColor" strokeWidth="1" />
+              <line x1="50" y1="15" x2="50" y2="30" stroke="currentColor" strokeWidth="1" />
+              <line x1="80" y1="32.5" x2="70" y2="41.5" stroke="currentColor" strokeWidth="1" />
+              <line x1="80" y1="67.5" x2="70" y2="65" stroke="currentColor" strokeWidth="1" />
+              <line x1="50" y1="85" x2="50" y2="76.5" stroke="currentColor" strokeWidth="1" />
+              <line x1="20" y1="67.5" x2="30" y2="65" stroke="currentColor" strokeWidth="1" />
+              <line x1="20" y1="32.5" x2="30" y2="41.5" stroke="currentColor" strokeWidth="1" />
+            </svg>
+            <div className="absolute font-mono text-[8px] text-indigo-400/70 bottom-8 left-8 right-8 bg-black/60 p-2 border border-indigo-500/10 backdrop-blur-sm rounded">
+              <div className="truncate">BLOCK_HASH: 0x9f7...28d4</div>
+              <div className="flex justify-between mt-1"><span>NONCE: 108342</span><span className="text-emerald-400">SYNCED ✓</span></div>
+            </div>
+          </div>
+        );
+      case 2: // Healthcare Chatbot - Beating EKG Heartbeat Line
+        return (
+          <div className="absolute inset-0 flex flex-col justify-center p-6 opacity-45 group-hover:opacity-85 transition-opacity duration-500">
+            <svg className="w-full h-24 text-emerald-500" viewBox="0 0 200 60">
+              <path
+                d="M 0 30 L 40 30 L 48 10 L 54 50 L 60 30 L 80 30 L 85 30 L 92 5 L 98 55 L 105 30 L 140 30 L 146 15 L 152 45 L 158 30 L 200 30"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeDasharray="400"
+                strokeDashoffset={pulse ? "0" : "400"}
+                className="transition-all duration-[2000ms] ease-in-out"
+              />
+            </svg>
+            <div className="font-mono text-[9px] text-emerald-400 bg-black/55 p-2 rounded border border-emerald-500/10 self-start mt-2">
+              <div className="flex gap-4"><span>HR: 74 BPM</span><span>SpO2: 99%</span><span>SYS_STATUS: ACTIVE</span></div>
+            </div>
+          </div>
+        );
+      case 3: // Fake News Detection - NLP vector logs
+        return (
+          <div className="absolute inset-0 p-6 flex flex-col justify-end opacity-40 group-hover:opacity-80 transition-opacity duration-500 font-mono text-[9px] text-cyan-400 space-y-1.5 bg-gradient-to-t from-black/80 via-transparent">
+            <div className="border-l-2 border-cyan-500 pl-2 py-1 space-y-1 bg-black/40 backdrop-blur-sm">
+              <div className="text-[8px] opacity-60">SYSTEM_NLP_VECTORS:</div>
+              <div className="truncate">[VEC_01]: [0.24, -0.89, 0.43, 0.12]</div>
+              <div className="truncate">[VEC_02]: [-0.15, 0.54, 0.77, -0.32]</div>
+              <div className="flex justify-between items-center text-cyan-300 font-bold text-[8px] pt-1 border-t border-cyan-500/10">
+                <span>SIMILARITY_SCORE: 0.941</span>
+                <span className="text-emerald-400">CREDIBILITY_VALID</span>
+              </div>
+            </div>
+          </div>
+        );
+      case 4: // Dynamic Face Lift - 3D Geometric Mesh Nodal points
+        return (
+          <div className="absolute inset-0 flex justify-center items-center opacity-35 group-hover:opacity-75 transition-opacity duration-500">
+            <svg className="w-40 h-40 text-teal-500" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 2" />
+              <g className="animate-pulse">
+                {/* Face landmarks */}
+                <circle cx="35" cy="40" r="2" fill="currentColor" />
+                <circle cx="65" cy="40" r="2" fill="currentColor" />
+                <circle cx="50" cy="55" r="2.5" fill="currentColor" />
+                <circle cx="35" cy="65" r="2" fill="currentColor" />
+                <circle cx="65" cy="65" r="2" fill="currentColor" />
+                <circle cx="50" cy="72" r="2" fill="currentColor" />
+                {/* Connecting mesh lines */}
+                <line x1="35" y1="40" x2="50" y2="55" stroke="currentColor" strokeWidth="0.5" />
+                <line x1="65" y1="40" x2="50" y2="55" stroke="currentColor" strokeWidth="0.5" />
+                <line x1="35" y1="40" x2="35" y2="65" stroke="currentColor" strokeWidth="0.5" />
+                <line x1="65" y1="40" x2="65" y2="65" stroke="currentColor" strokeWidth="0.5" />
+                <line x1="35" y1="65" x2="50" y2="55" stroke="currentColor" strokeWidth="0.5" />
+                <line x1="65" y1="65" x2="50" y2="55" stroke="currentColor" strokeWidth="0.5" />
+                <line x1="35" y1="65" x2="50" y2="72" stroke="currentColor" strokeWidth="0.5" />
+                <line x1="65" y1="65" x2="50" y2="72" stroke="currentColor" strokeWidth="0.5" />
+              </g>
+            </svg>
+          </div>
+        );
+      case 5: // NetGuard - Firewall Shield Hologram
+        return (
+          <div className="absolute inset-0 flex flex-col justify-center items-center opacity-40 group-hover:opacity-85 transition-opacity duration-500">
+            <svg className="w-32 h-32 text-amber-500 animate-pulse" viewBox="0 0 100 100">
+              <path d="M50,15 L80,25 L80,55 C80,75 50,88 50,88 C50,88 20,75 20,55 L20,25 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M50,22 L73,30 L73,53 C73,69 50,80 50,80 C50,80 27,69 27,53 L27,30 Z" fill="currentColor" fillOpacity="0.08" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 2" />
+              <circle cx="50" cy="50" r="10" fill="none" stroke="currentColor" strokeWidth="1" />
+            </svg>
+            <div className="font-mono text-[8px] text-amber-500/80 bg-black/60 p-1.5 border border-amber-500/20 backdrop-blur-sm rounded mt-2 uppercase">
+              SHIELD_STATUS: HARDENED_PROT
+            </div>
+          </div>
+        );
+      case 6: // Portfolio Kinju - Neon Floating cubes
+        return (
+          <div className="absolute inset-0 flex justify-center items-center opacity-30 group-hover:opacity-75 transition-opacity duration-500">
+            <div className="relative w-40 h-40 animate-spin" style={{ animationDuration: '20s' }}>
+              <div className="absolute top-4 left-4 w-12 h-12 border border-pink-500/30 group-hover:border-pink-500/60 rounded transform rotate-12 transition-all" />
+              <div className="absolute bottom-4 right-4 w-16 h-16 border border-fuchsia-500/30 group-hover:border-fuchsia-500/60 rounded transform -rotate-45 transition-all" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border border-pink-500 rounded animate-pulse" />
+            </div>
+          </div>
+        );
+      case 7: // InspectFlow Sync - Linear flow pipeline
+        return (
+          <div className="absolute inset-0 flex flex-col justify-center p-8 opacity-45 group-hover:opacity-85 transition-opacity duration-500 space-y-4">
+            {[0, 1, 2].map(n => (
+              <div key={n} className="w-full relative h-1 bg-violet-950 roundedoverflow-hidden">
+                <div 
+                  className="absolute top-0 bottom-0 w-8 bg-violet-400 shadow-[0_0_8px_rgb(139,92,246)] rounded sweep-animate" 
+                  style={{ animationDelay: `${n * 1.5}s`, animationDuration: '4s' }}
+                />
+              </div>
+            ))}
+            <div className="font-mono text-[8px] text-violet-400 bg-black/55 p-1 rounded border border-violet-500/10 self-start">
+              DATA_SYNC_PIPELINE: STREAM_OK
+            </div>
+          </div>
+        );
+      case 8: // CXBulk - Bouncing dynamic DB scaling chart bar charts
+        return (
+          <div className="absolute inset-0 flex items-end justify-around p-8 opacity-40 group-hover:opacity-85 transition-opacity duration-500">
+            {[45, 80, 55, 90, 70, 40].map((h, i) => (
+              <div key={i} className="w-4 bg-rose-950/40 border border-rose-500/20 rounded-t overflow-hidden flex flex-col justify-end" style={{ height: '70%' }}>
+                <div 
+                  className="w-full bg-gradient-to-t from-rose-600 to-rose-400 shadow-[0_0_8px_rgb(244,63,94)] transition-all duration-[1000ms] ease-out" 
+                  style={{ height: pulse ? `${h}%` : `${h - 25}%` }}
+                />
+              </div>
+            ))}
+          </div>
+        );
+      case 9: // Codexservice - Console brackets terminal typing
+        return (
+          <div className="absolute inset-0 p-6 flex flex-col justify-center opacity-40 group-hover:opacity-85 transition-opacity duration-500 font-mono text-[10px] text-lime-400 space-y-1">
+            <div className="text-[8px] text-lime-500/50"># API_GATEWAY_CONSOLE</div>
+            <div className="flex items-center gap-1"><span>&gt; GET /api/v1/services</span><span className="w-1.5 h-3.5 bg-lime-400 animate-pulse" /></div>
+            <div className="text-lime-300">{"{"} status: "200 OK", latency: "14ms" {"}"}</div>
+            <div className="text-lime-500/70">&gt; DATABASE CONNECTED [POOL_OK]</div>
+          </div>
+        );
+      case 10: // QR Code Page - scanner align target layout
+        return (
+          <div className="absolute inset-0 flex justify-center items-center opacity-35 group-hover:opacity-75 transition-opacity duration-500">
+            <svg className="w-36 h-36 text-sky-500" viewBox="0 0 100 100">
+              {/* Corner brackets inside the SVG */}
+              <path d="M 15 30 L 15 15 L 30 15" fill="none" stroke="currentColor" strokeWidth="2" />
+              <path d="M 85 30 L 85 15 L 70 15" fill="none" stroke="currentColor" strokeWidth="2" />
+              <path d="M 15 70 L 15 85 L 30 85" fill="none" stroke="currentColor" strokeWidth="2" />
+              <path d="M 85 70 L 85 85 L 70 85" fill="none" stroke="currentColor" strokeWidth="2" />
+              {/* Center scan line */}
+              <line x1="20" y1="50" x2="80" y2="50" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" className="animate-pulse" />
+            </svg>
+          </div>
+        );
+      case 11: // Digivault - Locker concentric rings rotating
+        return (
+          <div className="absolute inset-0 flex justify-center items-center opacity-35 group-hover:opacity-80 transition-opacity duration-500">
+            <svg className="w-36 h-36 text-yellow-500" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="30 10" className="animate-spin" style={{ animationDuration: '10s' }} />
+              <circle cx="50" cy="50" r="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="15 5" className="animate-spin" style={{ animationDuration: '6s', animationDirection: 'reverse' }} />
+              <circle cx="50" cy="50" r="12" fill="none" stroke="currentColor" strokeWidth="1" />
+              <text x="50" y="54" fontSize="11" textAnchor="middle" fill="currentColor" fontWeight="bold">🔒</text>
+            </svg>
+          </div>
+        );
+      case 12: // Gym Pro System - Workout concentric progress ring meters
+        return (
+          <div className="absolute inset-0 flex justify-center items-center opacity-35 group-hover:opacity-80 transition-opacity duration-500">
+            <svg className="w-32 h-32 text-orange-500" viewBox="0 0 100 100">
+              {/* Concentric progress rings */}
+              <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="4" strokeOpacity="0.1" />
+              <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="220" strokeDashoffset={pulse ? "60" : "120"} className="transition-all duration-[1500ms]" />
+              <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="4" strokeOpacity="0.1" />
+              <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="160" strokeDashoffset={pulse ? "90" : "30"} className="transition-all duration-[1500ms]" />
+            </svg>
+          </div>
+        );
+      case 13: // Lifeconnect - Interconnected web mesh net nodes
+        return (
+          <div className="absolute inset-0 flex justify-center items-center opacity-40 group-hover:opacity-80 transition-opacity duration-500">
+            <svg className="w-40 h-40 text-rose-400" viewBox="0 0 100 100">
+              <g className="animate-pulse">
+                <circle cx="20" cy="30" r="3" fill="currentColor" />
+                <circle cx="80" cy="30" r="3" fill="currentColor" />
+                <circle cx="50" cy="50" r="4.5" fill="currentColor" />
+                <circle cx="30" cy="75" r="3" fill="currentColor" />
+                <circle cx="70" cy="75" r="3" fill="currentColor" />
+                {/* connections */}
+                <line x1="20" y1="30" x2="50" y2="50" stroke="currentColor" strokeWidth="0.8" />
+                <line x1="80" y1="30" x2="50" y2="50" stroke="currentColor" strokeWidth="0.8" />
+                <line x1="30" y1="75" x2="50" y2="50" stroke="currentColor" strokeWidth="0.8" />
+                <line x1="70" y1="75" x2="50" y2="50" stroke="currentColor" strokeWidth="0.8" />
+                <line x1="20" y1="30" x2="80" y2="30" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 2" />
+                <line x1="30" y1="75" x2="70" y2="75" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 2" />
+              </g>
+            </svg>
+          </div>
+        );
+      case 14: // Gov Project - Holographic revolving star emblem
+        return (
+          <div className="absolute inset-0 flex justify-center items-center opacity-40 group-hover:opacity-80 transition-opacity duration-500">
+            <svg className="w-36 h-36 text-blue-500 animate-spin" style={{ animationDuration: '24s' }} viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4 4" />
+              <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" strokeWidth="1" />
+              {/* Geometric star */}
+              <polygon points="50,20 58,38 78,38 62,50 68,68 50,56 32,68 38,50 22,38 42,38" fill="none" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
-    // 0 - AI Threat Detection: Red radar sweep + blinking targets
-    const drops0 = Array.from({length:Math.floor(W/18)},()=>0);
-    const targets0 = Array.from({length:5},(_,i)=>({x:40+(i*W/5),y:40+(i*30)%H}));
-    // 1 - Blockchain Voting: Hex blocks chain
-    // 2 - Healthcare Chatbot: EKG heartbeat
-    const ekg: number[] = []; for(let i=0;i<W;i++) ekg.push(H/2);
-    // 3 - Fake News Detection: Text scan lines
-    // 4 - Dynamic Face Lift: Face mesh grid
-    // 5 - NetGuard: Shield + firewall pulses
-    // 6 - Portfolio Kinju: Neon cubes floating
-    const cubes = Array.from({length:8},(_,i)=>({x:(i*73)%W,y:(i*55)%H,s:20+(i*11)%20,a:i*0.4,v:0.4+(i%4)*0.2}));
-    // 7 - InspectFlow Sync: Pipeline nodes
-    const pipes = Array.from({length:6},(_,i)=>({x:0,y:(i+1)*(H/7),p:0}));
-    // 8 - CXBulk: Animated bar chart
-    const bars = Array.from({length:10},(_,i)=>({h:(i*37)%70+20,target:(i*53)%80+20}));
-    // 9 - Codexservice: Brackets typing
-    const code = ["{}","[]",'</>','fn()','API','REST','POST','GET'];
-    // 10 - QR Code: Pixel grid flicker
-    const qr = Array.from({length:100},(_,i)=>((i*73+i*i*13)%3===0?1:0));
-    // 11 - Digivualt: Vault tumbler rings
-    // 12 - Gym Pro: Progress rings
-    const rings = [{r:60,spd:0.01,col:'#06b6d4'},{r:45,spd:-0.015,col:'#a78bfa'},{r:30,spd:0.02,col:'#34d399'}];
-    // 13 - Lifeconnect: Social particle web
-    const soc = Array.from({length:20},(_,i)=>({x:(i*97)%W,y:(i*61)%H,vx:(((i*13)%7)-3)*0.4,vy:(((i*17)%7)-3)*0.4}));
-    // 14 - Gov Project: Rotating star emblem
+  return (
+    <div className={`absolute inset-0 z-0 bg-gradient-to-br ${theme.bgGrad} overflow-hidden select-none transition-all duration-500 group-hover:scale-105`}>
+      {/* 1. Underlying animated grid backdrop */}
+      <div 
+        className="absolute inset-0 opacity-15 mix-blend-overlay cyber-grid-animate"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, ${theme.primary} 1px, transparent 1px),
+            linear-gradient(to bottom, ${theme.primary} 1px, transparent 1px)
+          `,
+          backgroundSize: '30px 30px',
+        }}
+      />
 
-    const draw = () => {
-      t += 0.03;
-      switch(index) {
-        case 0: { // AI Threat Detection - Red radar
-          clr(0.04);
-          const cx=W/2,cy=H/2,maxR=Math.min(W,H)*0.45;
-          ctx.strokeStyle=`rgba(239,68,68,0.15)`; ctx.lineWidth=1;
-          [0.3,0.6,1].forEach(f=>{ ctx.beginPath();ctx.arc(cx,cy,maxR*f,0,Math.PI*2);ctx.stroke(); });
-          const sweep=t%( Math.PI*2);
-          const grad=ctx.createConicGradient(sweep,cx,cy);
-          grad.addColorStop(0,'rgba(239,68,68,0.6)'); grad.addColorStop(0.15,'rgba(239,68,68,0)');
-          grad.addColorStop(1,'rgba(239,68,68,0)');
-          ctx.fillStyle=grad; ctx.beginPath();ctx.arc(cx,cy,maxR,0,Math.PI*2);ctx.fill();
-          targets0.forEach(tg=>{ if(Math.abs(Math.atan2(tg.y-cy,tg.x-cx)-sweep)<0.3){ glow('#ef4444',15); ctx.fillStyle='#ef4444'; ctx.beginPath();ctx.arc(tg.x,tg.y,4,0,Math.PI*2);ctx.fill();noGlow(); } });
-          ctx.strokeStyle='rgba(239,68,68,0.8)'; ctx.lineWidth=2;
-          ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(sweep)*maxR,cy+Math.sin(sweep)*maxR);ctx.stroke();
-          break;
-        }
-        case 1: { // Blockchain Voting - Hex blocks
-          clr(0.06);
-          const hexes=[{x:W*0.2,y:H*0.4},{x:W*0.5,y:H*0.3},{x:W*0.8,y:H*0.4},{x:W*0.35,y:H*0.65},{x:W*0.65,y:H*0.65}];
-          hexes.forEach((h,i)=>{
-            const pulse=0.5+0.5*Math.sin(t*2+i);
-            ctx.strokeStyle=`rgba(99,102,241,${0.4+pulse*0.5})`;
-            glow('#6366f1',10*pulse); ctx.lineWidth=2;
-            ctx.beginPath();
-            for(let s=0;s<6;s++){const a=s*Math.PI/3;s===0?ctx.moveTo(h.x+25*Math.cos(a),h.y+25*Math.sin(a)):ctx.lineTo(h.x+25*Math.cos(a),h.y+25*Math.sin(a));}
-            ctx.closePath();ctx.stroke();
-            ctx.fillStyle=`rgba(99,102,241,${0.1+pulse*0.1})`;ctx.fill();
-            noGlow();
-          });
-          hexes.forEach((a,i)=>{ if(i<hexes.length-1){const b=hexes[i+1]; ctx.strokeStyle='rgba(99,102,241,0.3)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([]);} });
-          break;
-        }
-        case 2: { // Healthcare Chatbot - EKG heartbeat
-          clr(0.08);
-          for(let i=ekg.length-1;i>0;i--) ekg[i]=ekg[i-1];
-          const pos=Math.floor(t*30)%60;
-          ekg[0]= pos<5? H/2-80*Math.sin(pos*Math.PI/5) : pos<8? H/2+40*Math.sin((pos-5)*Math.PI/3) : H/2;
-          ctx.strokeStyle='#34d399'; ctx.lineWidth=2;
-          glow('#34d399',10);
-          ctx.beginPath();
-          ekg.forEach((y,i)=>i===0?ctx.moveTo(W-i*2,y):ctx.lineTo(W-i*2,y));
-          ctx.stroke(); noGlow();
-          ctx.fillStyle='#34d399'; ctx.font='11px monospace';
-          ctx.fillText('PULSE: 72 BPM',10,20); ctx.fillText('O2: 98%',10,38);
-          break;
-        }
-        case 3: { // Fake News Detection - Text scan
-          clr(0.05);
-          const lines=['ANALYZING: input_text_v2.txt','CHECKING SOURCE CREDIBILITY...','BIAS SCORE: 0.12','NLP VECTORS: MATCHING...','VERDICT: FALSE ✗','CONFIDENCE: 97.3%'];
-          lines.forEach((l,i)=>{
-            const alpha=0.3+0.7*Math.abs(Math.sin(t+i));
-            ctx.fillStyle=i===4?`rgba(239,68,68,${alpha})`:`rgba(6,182,212,${alpha})`;
-            ctx.font='11px monospace';
-            ctx.fillText(l,10,30+i*28);
-          });
-          const scanY=(t*80)%H;
-          ctx.strokeStyle='rgba(6,182,212,0.4)'; ctx.lineWidth=1;
-          ctx.beginPath();ctx.moveTo(0,scanY);ctx.lineTo(W,scanY);ctx.stroke();
-          break;
-        }
-        case 4: { // Dynamic Face Lift - Face mesh
-          clr(0.06);
-          const cx=W/2,cy=H/2;
-          const pts=Array.from({length:24},(_,i)=>{const a=i/24*Math.PI*2;const r=80+20*Math.sin(t+i);return{x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r*0.75};});
-          glow('#06b6d4',6); ctx.strokeStyle='rgba(6,182,212,0.5)'; ctx.lineWidth=1;
-          pts.forEach((p,i)=>{ const n=pts[(i+1)%pts.length]; ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(n.x,n.y);ctx.stroke(); if(i%3===0){const m=pts[(i+8)%pts.length];ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(m.x,m.y);ctx.stroke();} });
-          pts.forEach(p=>{ ctx.fillStyle='#06b6d4';ctx.beginPath();ctx.arc(p.x,p.y,2,0,Math.PI*2);ctx.fill(); });
-          noGlow();
-          break;
-        }
-        case 5: { // NetGuard - Shield + firewall
-          clr(0.05);
-          const cx=W/2,cy=H/2;
-          const pulse=0.5+0.5*Math.sin(t*2);
-          glow('#f59e0b',20*pulse);
-          ctx.strokeStyle=`rgba(245,158,11,${0.5+pulse*0.5})`; ctx.lineWidth=3;
-          ctx.beginPath();ctx.moveTo(cx,cy-70);ctx.lineTo(cx+50,cy-40);ctx.lineTo(cx+50,cy+20);ctx.quadraticCurveTo(cx+50,cy+60,cx,cy+75);ctx.quadraticCurveTo(cx-50,cy+60,cx-50,cy+20);ctx.lineTo(cx-50,cy-40);ctx.closePath();ctx.stroke();
-          ctx.fillStyle=`rgba(245,158,11,${0.05+pulse*0.08})`;ctx.fill();
-          noGlow();
-          [1,2,3].forEach(r=>{ ctx.strokeStyle=`rgba(245,158,11,${0.1*pulse})`;ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,r*40+10*Math.sin(t+r),0,Math.PI*2);ctx.stroke(); });
-          break;
-        }
-        case 6: { // Portfolio Kinju - Neon cubes
-          clr(0.06);
-          cubes.forEach(cu=>{
-            cu.y-=cu.v; if(cu.y<-cu.s) cu.y=H+cu.s;
-            cu.a+=0.01;
-            const hs=cu.s/2;
-            const alpha=0.4+0.3*Math.sin(t+cu.x);
-            glow('#ec4899',8); ctx.strokeStyle=`rgba(236,72,153,${alpha})`; ctx.lineWidth=1.5;
-            ctx.save();ctx.translate(cu.x,cu.y);ctx.rotate(cu.a);
-            ctx.strokeRect(-hs,-hs,cu.s,cu.s);
-            ctx.restore(); noGlow();
-          });
-          break;
-        }
-        case 7: { // InspectFlow Sync - Pipeline
-          clr(0.05);
-          pipes.forEach((p,i)=>{
-            p.p=(p.p+1.5)%W;
-            ctx.strokeStyle=`rgba(6,182,212,0.2)`;ctx.lineWidth=1;
-            ctx.beginPath();ctx.moveTo(0,p.y);ctx.lineTo(W,p.y);ctx.stroke();
-            glow('#06b6d4',12); ctx.strokeStyle='#06b6d4'; ctx.lineWidth=3;
-            ctx.beginPath();ctx.moveTo(p.p-30,p.y);ctx.lineTo(p.p,p.y);ctx.stroke();
-            ctx.fillStyle='#06b6d4';ctx.beginPath();ctx.arc(p.p,p.y,5,0,Math.PI*2);ctx.fill();
-            noGlow();
-            ctx.fillStyle='rgba(6,182,212,0.6)';ctx.font='10px monospace';
-            ctx.fillText(['INPUT','PARSE','VALID','SYNC','QUEUE','OUT'][i],10,p.y-6);
-          });
-          break;
-        }
-        case 8: { // CXBulk - Bar chart
-          clr(0.07);
-          bars.forEach((b,i)=>{
-            b.h+=(b.target-b.h)*0.03;
-            if(Math.abs(b.h-b.target)<1){b.target=20+(i*37+Math.floor(t*10))%80;}
-            const x=15+i*(W-30)/10, bh=b.h/100*H*0.7;
-            const grad=ctx.createLinearGradient(0,H-bh,0,H);
-            grad.addColorStop(0,'rgba(6,182,212,0.9)');grad.addColorStop(1,'rgba(6,182,212,0.2)');
-            ctx.fillStyle=grad;
-            glow('#06b6d4',6); ctx.fillRect(x,H-bh,18,bh); noGlow();
-          });
-          break;
-        }
-        case 9: { // Codexservice - Code typing
-          clr(0.04);
-          const line=Math.floor(t/1.5)%code.length;
-          code.forEach((l,i)=>{
-            const alpha= i<=line? 0.9 : 0.2;
-            ctx.fillStyle=i%2===0?`rgba(6,182,212,${alpha})`:`rgba(167,139,250,${alpha})`;
-            ctx.font='bold 22px monospace';
-            ctx.fillText(l, W/2-30, 60+i*55);
-          });
-          const curX=W/2-30+(i=>i<code[line%code.length].length?i*13:code[line%code.length].length*13)(Math.floor((t%1.5)/1.5*code[line%code.length].length));
-          ctx.fillStyle='rgba(6,182,212,0.9)';ctx.fillRect(W/2-30+code[line].length*13,60+line*55+5,2,20);
-          break;
-        }
-        case 10: { // QR Code - Pixel grid
-          clr(0.03);
-          const cell=Math.floor(W/10);
-          qr.forEach((v,i)=>{
-            const row=Math.floor(i/10),col=i%10;
-            const flicker=Math.sin(t*3+i*0.7)>0.5?v:qr[(i+13)%100];
-            ctx.fillStyle=flicker?`rgba(6,182,212,0.8)`:'rgba(6,182,212,0.05)';
-            ctx.fillRect(col*cell,row*cell,cell-2,cell-2);
-          });
-          break;
-        }
-        case 11: { // Digivualt - Vault rings
-          clr(0.05);
-          const cx=W/2,cy=H/2;
-          [80,58,36].forEach((r,i)=>{
-            const angle=t*(i%2===0?0.5:-0.7)*(i+1);
-            ctx.strokeStyle=['#f59e0b','#06b6d4','#a78bfa'][i]; ctx.lineWidth=6;
-            glow(['#f59e0b','#06b6d4','#a78bfa'][i],12);
-            ctx.beginPath();ctx.arc(cx,cy,r,angle,angle+Math.PI*1.4);ctx.stroke();
-            ctx.beginPath();ctx.arc(cx,cy,r,angle+Math.PI,angle+Math.PI*2.4);ctx.stroke();
-            noGlow();
-          });
-          ctx.fillStyle='rgba(245,158,11,0.8)';ctx.font='bold 18px monospace';
-          ctx.textAlign='center';ctx.fillText('🔒',cx,cy+7);ctx.textAlign='left';
-          break;
-        }
-        case 12: { // Gym Pro - Progress rings
-          clr(0.05);
-          const cx=W/2,cy=H/2;
-          rings.forEach((rg,i)=>{
-            const progress=0.5+0.5*Math.sin(t*rg.spd*30+i);
-            ctx.strokeStyle=`rgba(0,0,0,0.3)`; ctx.lineWidth=8;
-            ctx.beginPath();ctx.arc(cx,cy,rg.r,0,Math.PI*2);ctx.stroke();
-            glow(rg.col,10); ctx.strokeStyle=rg.col; ctx.lineWidth=8;
-            ctx.beginPath();ctx.arc(cx,cy,rg.r,-Math.PI/2,-Math.PI/2+progress*Math.PI*2);ctx.stroke();
-            noGlow();
-          });
-          ctx.fillStyle='rgba(6,182,212,0.9)';ctx.font='bold 14px monospace';ctx.textAlign='center';
-          ctx.fillText('FITNESS',cx,cy+5);ctx.textAlign='left';
-          break;
-        }
-        case 13: { // Lifeconnect - Social web
-          clr(0.06);
-          soc.forEach(n=>{ n.x+=n.vx;n.y+=n.vy; if(n.x<0||n.x>W)n.vx*=-1; if(n.y<0||n.y>H)n.vy*=-1; });
-          soc.forEach((a,i)=>soc.slice(i+1).forEach(b=>{
-            const d=Math.hypot(a.x-b.x,a.y-b.y);
-            if(d<90){ctx.strokeStyle=`rgba(167,139,250,${1-d/90})`;ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
-          }));
-          soc.forEach((n,i)=>{ glow('#a78bfa',8);ctx.fillStyle=i%5===0?'#ec4899':'#a78bfa';ctx.beginPath();ctx.arc(n.x,n.y,i%5===0?5:3,0,Math.PI*2);ctx.fill(); });
-          noGlow();
-          break;
-        }
-        case 14: { // Gov Project - Star emblem
-          clr(0.05);
-          const cx=W/2,cy=H/2;
-          glow('#f59e0b',15); ctx.strokeStyle='rgba(245,158,11,0.7)'; ctx.lineWidth=2;
-          for(let s=0;s<5;s++){ const a=s*Math.PI*2/5-Math.PI/2+t*0.2; const a2=a+Math.PI/5; ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*70,cy+Math.sin(a)*70);ctx.lineTo(cx+Math.cos(a2)*30,cy+Math.sin(a2)*30);ctx.stroke(); }
-          [90,110].forEach(r=>{ ctx.strokeStyle='rgba(245,158,11,0.3)';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke(); });
-          noGlow();
-          ctx.fillStyle='rgba(245,158,11,0.8)';ctx.font='10px monospace';ctx.textAlign='center';
-          ctx.fillText('PUBLIC SECTOR',cx,H-15);ctx.textAlign='left';
-          break;
-        }
-      }
-      raf = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => cancelAnimationFrame(raf);
-  }, [index]);
-  return <canvas ref={ref} className="absolute inset-0 w-full h-full opacity-50 group-hover:opacity-90 transition-opacity duration-700" />;
+      {/* 2. Floating blur neon orbs */}
+      <div className={`absolute top-1/4 left-1/4 w-40 h-40 rounded-full blur-[60px] opacity-35 ${theme.orb1} orb-float-1-animate`} />
+      <div className={`absolute bottom-1/4 right-1/4 w-36 h-36 rounded-full blur-[50px] opacity-25 ${theme.orb2} orb-float-2-animate`} />
+
+      {/* 3. Concentric glowing scanlines */}
+      <div className={`absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-${theme.accent.split('-')[1]}-500 to-transparent opacity-0 group-hover:opacity-100 scanline-animate transition-opacity duration-300 shadow-[0_0_12px_${theme.primary}]`} />
+
+      {/* 4. Glassmorphism HUD corners */}
+      <div className="absolute inset-4 pointer-events-none border border-white/[0.03] group-hover:border-cyan-500/10 transition-colors duration-500">
+        {/* Top-Left */}
+        <div className={`absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 ${theme.accent} opacity-30 group-hover:opacity-100 transition-opacity`} />
+        {/* Top-Right */}
+        <div className={`absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 ${theme.accent} opacity-30 group-hover:opacity-100 transition-opacity`} />
+        {/* Bottom-Left */}
+        <div className={`absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 ${theme.accent} opacity-30 group-hover:opacity-100 transition-opacity`} />
+        {/* Bottom-Right */}
+        <div className={`absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 ${theme.accent} opacity-30 group-hover:opacity-100 transition-opacity`} />
+      </div>
+
+      {/* 5. Custom Dynamic Telemetry Dashboard Widget */}
+      {renderTelemetry()}
+
+      {/* 6. Dynamic matrix scanning status info lines at the top */}
+      <div className="absolute top-6 left-6 right-6 flex justify-between font-mono text-[8px] opacity-45 group-hover:opacity-90 transition-opacity text-white/50">
+        <span className="flex items-center gap-1.5">
+          <span className={`w-1.5 h-1.5 rounded-full ${theme.primary === 'rgb(239, 68, 68)' ? 'bg-red-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`} />
+          STATUS_OK // ENGINE_SYS_V4
+        </span>
+        <span>SYS_CORE_SECURE_OS</span>
+      </div>
+    </div>
+  );
 };
 
-const GetCardAnimation = (_tech: string, index: number) => <ProjectCanvas index={index} />;
+const GetCardAnimation = (_tech: string, index: number) => <ProjectBg index={index} />;
 
 // ============================================================
 // 3.PLACEHOLDER (was GeometricFloat end marker)

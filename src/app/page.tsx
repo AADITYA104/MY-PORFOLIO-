@@ -91,10 +91,10 @@ const ProfileData = {
     { title: "CXBulk", tech: "Full Stack", metric: "Scale", link: "https://github.com/AADITYA104/CXBulk" },
     { title: "Codexservice", tech: "Backend", metric: "API", link: "https://github.com/AADITYA104/Codexservice" },
     { title: "QR Code Page", tech: "Frontend", metric: "Utility", link: "https://github.com/AADITYA104/QR-CODE-PAGE" },
-    { title: "Digivualt", tech: "Web/Security", metric: "Vault", link: "https://github.com/YogeshTundiya/Digivualt" },
+    { title: "DigiVault", tech: "Web/Security", metric: "Vault", link: "https://github.com/YogeshTundiya/Digivualt" },
     { title: "Gym Pro System", tech: "Full Stack", metric: "Management", link: "https://github.com/YogeshTundiya/Gym_pro_system" },
     { title: "Lifeconnect", tech: "Web App", metric: "Social", link: "https://github.com/YogeshTundiya/Lifeconnect" },
-    { title: "Gov Project", tech: "Full Stack", metric: "Public Tech", link: "https://github.com/YogeshTundiya/Gov-porject" }
+    { title: "Gov Portal", tech: "Full Stack", metric: "Public Tech", link: "https://github.com/YogeshTundiya/Gov-porject" }
   ]
 };
 
@@ -415,7 +415,7 @@ const ProjectBg = ({ index }: { index: number }) => {
         return (
           <div className="absolute inset-0 flex flex-col justify-center p-8 opacity-45 group-hover:opacity-85 transition-opacity duration-500 space-y-4">
             {[0, 1, 2].map(n => (
-              <div key={n} className="w-full relative h-1 bg-violet-950 roundedoverflow-hidden">
+              <div key={n} className="w-full relative h-1 bg-violet-950 rounded overflow-hidden">
                 <div 
                   className="absolute top-0 bottom-0 w-8 bg-violet-400 shadow-[0_0_8px_rgb(139,92,246)] rounded sweep-animate" 
                   style={{ animationDelay: `${n * 1.5}s`, animationDuration: '4s' }}
@@ -656,41 +656,48 @@ export default function Home() {
       const xRing = gsap.quickTo(cursorRingRef.current, "x", { duration: 0.5, ease: "power3.out" });
       const yRing = gsap.quickTo(cursorRingRef.current, "y", { duration: 0.5, ease: "power3.out" });
 
+      if (heroContentRef.current) {
+        gsap.set(heroContentRef.current, { transformPerspective: 1000 });
+      }
+
+      const rotateXTo = gsap.quickTo(heroContentRef.current, "rotateX", { duration: 1, ease: "power2.out" });
+      const rotateYTo = gsap.quickTo(heroContentRef.current, "rotateY", { duration: 1, ease: "power2.out" });
+
+      const gridXTo = gsap.quickTo(gridRef.current, "x", { duration: 1, ease: "power2.out" });
+      const gridYTo = gsap.quickTo(gridRef.current, "y", { duration: 1, ease: "power2.out" });
+
+      let lastLabelUpdate = 0;
+
       const handleGlobalMouseMove = (e: MouseEvent) => {
         const { clientX: x, clientY: y } = e;
         
-        // Update Cursor
+        // Update Cursor immediately (GPU accelerated translation)
         xDot(x);
         yDot(y);
         xRing(x);
         yRing(y);
         
-        // Update Label Coordinates
-        if (cursorLabelRef.current) {
-          cursorLabelRef.current.innerText = `X: ${Math.round(x)} Y: ${Math.round(y)}\nSYS: ONLINE`;
+        // Throttle coordinate text updates to prevent layout thrashing (avoids heavy DOM reflows)
+        const now = performance.now();
+        if (now - lastLabelUpdate > 60) {
+          if (cursorLabelRef.current) {
+            cursorLabelRef.current.textContent = `X: ${Math.round(x)} Y: ${Math.round(y)}\nSYS: ONLINE`;
+          }
+          lastLabelUpdate = now;
         }
 
-        // Update 3D Hero Rotation (avoids React re-renders)
+        // Update 3D Hero Rotation (avoids React re-renders & uses fast quickTo)
         if (heroContentRef.current) {
           const rotateY = ((x / window.innerWidth) - 0.5) * 20;
           const rotateX = ((y / window.innerHeight) - 0.5) * -20;
-          gsap.to(heroContentRef.current, {
-            rotateY,
-            rotateX,
-            duration: 1,
-            ease: "power2.out",
-            transformPerspective: 1000
-          });
+          rotateXTo(rotateX);
+          rotateYTo(rotateY);
         }
 
-        // Parallax Background Grid
+        // Parallax Background Grid (uses fast quickTo)
         if (gridRef.current) {
-          gsap.to(gridRef.current, {
-            x: -x * 0.04,
-            y: -y * 0.04,
-            duration: 1,
-            ease: "power2.out"
-          });
+          gridXTo(-x * 0.04);
+          gridYTo(-y * 0.04);
         }
       };
 

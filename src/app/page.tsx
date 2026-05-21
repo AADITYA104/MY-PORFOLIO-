@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { CyberName } from "../components/CyberName";
 
 // Register GSAP Plugin
 if (typeof window !== "undefined") {
@@ -843,9 +844,8 @@ export default function Home() {
               <div className="overflow-hidden mb-6" style={{ transform: "translateZ(50px)" }}>
                 <p className="font-mono text-cyan-500 text-xs md:text-sm tracking-[0.8em]">SYSTEM_ORIGIN: GUJARAT_IN</p>
               </div>
-              <h1 className="text-[18vw] md:text-[12rem] font-black leading-[0.8] tracking-tighter uppercase italic select-none" style={{ transform: "translateZ(100px)" }}>
-                  {ProfileData.name.split(' ')[0]}<br/>
-                  <span className="text-cyan-500 drop-shadow-[0_0_30px_rgba(6,182,212,0.3)]">{ProfileData.name.split(' ')[1]}</span>
+              <h1 className="text-[18vw] md:text-[12rem] font-black select-none" style={{ transform: "translateZ(100px)" }}>
+                  <CyberName name={ProfileData.name} />
               </h1>
               <div className="grid grid-cols-1 md:grid-cols-2 mt-16 md:mt-24 gap-10 md:gap-20 items-end" style={{ transform: "translateZ(30px)" }}>
                   <div className="space-y-6">

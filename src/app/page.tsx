@@ -99,53 +99,198 @@ const ProfileData = {
   ]
 };
 
-// 1. TERMINAL BOOT SEQUENCE
+// 1. DUAL-PANEL CYBERNETIC OS CORE DIAGNOSTICS HUD LOADER
 const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
-    const [lines, setLines] = useState<string[]>([]);
-    
-    useEffect(() => {
-        const bootData = [
-            "> INITIALIZING ADITYA_OS...",
-            "> LOADING KERNEL V.4.0.2",
-            "> MOUNTING REPOSITORIES...",
-            "> 15 PROJECTS IDENTIFIED",
-            "> ESTABLISHING AI_CORE CONNECTIVITY...",
-            "> SYNCING GITHUB_NODE: AADITYA104",
-            "> SCANNING FULL_STACK_MODULES...",
-            "> AUTHORIZING ACCESS: ADITYA DEVMURARI",
-            "> DEPLOYING INTERFACE..."
-        ];
+    const [progress, setProgress] = useState(0);
+    const [statusText, setStatusText] = useState("INITIALIZING SYSTEM...");
+    const [consoleLogs, setConsoleLogs] = useState<string[]>([]);
+    const [isExiting, setIsExiting] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const shutterTopRef = useRef<HTMLDivElement>(null);
+    const shutterBottomRef = useRef<HTMLDivElement>(null);
+    const coreRef = useRef<HTMLDivElement>(null);
 
-        let i = 0;
+    const mockLogs = [
+        "SYSTEM_OS V.4.0.2 SECURE BOOT INITIATED",
+        "LOADING CORE ALGORITHMS... OK",
+        "ESTABLISHING SECURE SSH UPLINK...",
+        "MOUNTING HOST NODE: AADITYA104/MY-PORFOLIO-",
+        "COMPILING NEXT.js APP ROUTER BUNDLES...",
+        "CONNECTING TO AI NEURAL NETWORKS... VERIFIED",
+        "ANALYZING SECURITY PROTOCOLS... STABLE",
+        "PARSING FULL STACK R&D DEPLOYMENTS...",
+        "SYNCHRONIZING REPOSITORIES...",
+        "OPTIMIZING RENDERING METRICS... SUCCESS",
+        "AUTHORIZING ADITYA DEVMURARI DEVELOPER ACCESS...",
+        "GRANTING SYSTEM DRIVER INJECTION...",
+        "DEPLOYING FRONTEND INTERFACE HUD...",
+    ];
+
+    useEffect(() => {
+        const duration = 2000;
+        const intervalTime = 20;
+        const totalSteps = duration / intervalTime;
+        let currentStep = 0;
+
         const interval = setInterval(() => {
-            if (i < bootData.length) {
-                setLines(prev => [...prev, bootData[i]]);
-                i++;
-            } else {
+            currentStep++;
+            const currentProgress = Math.min(Math.round((currentStep / totalSteps) * 100), 100);
+            setProgress(currentProgress);
+
+            if (currentProgress < 20) setStatusText("INITIALIZING SYSTEM DIAGNOSTICS...");
+            else if (currentProgress < 40) setStatusText("ESTABLISHING SECURE PORT SYNC...");
+            else if (currentProgress < 60) setStatusText("LOADING FRONTEND REPOS AND COMPONENTS...");
+            else if (currentProgress < 85) setStatusText("CONNECTING SECURE CLOUD NODES...");
+            else if (currentProgress < 98) setStatusText("DECRYPTING INTERFACE STACK...");
+            else setStatusText("ACCESS GRANTED. BOOT COMPLETE.");
+
+            const logIdx = Math.floor((currentProgress / 100) * mockLogs.length);
+            setConsoleLogs(mockLogs.slice(0, logIdx + 1));
+
+            if (currentProgress >= 100) {
                 clearInterval(interval);
-                setTimeout(onComplete, 600);
+                
+                setTimeout(() => {
+                    setIsExiting(true);
+                    
+                    const tl = gsap.timeline({
+                        onComplete: onComplete
+                    });
+
+                    tl.to(coreRef.current, {
+                        scale: 1.8,
+                        opacity: 0,
+                        duration: 0.6,
+                        ease: "power3.inOut"
+                    });
+                    
+                    tl.to(shutterTopRef.current, {
+                        yPercent: -100,
+                        duration: 0.8,
+                        ease: "power4.inOut"
+                    }, "-=0.4");
+
+                    tl.to(shutterBottomRef.current, {
+                        yPercent: 100,
+                        duration: 0.8,
+                        ease: "power4.inOut"
+                    }, "-=0.8");
+                }, 400);
             }
-        }, 120);
+        }, intervalTime);
+
         return () => clearInterval(interval);
     }, [onComplete]);
 
     return (
-        <div className="fixed inset-0 bg-black z-[1000] flex items-center justify-center p-10 font-mono">
-            <div className="max-w-xl w-full">
-                {lines.map((line, idx) => (
-                    <div 
-                      key={idx} 
-                      className="text-cyan-500 mb-2 whitespace-nowrap overflow-hidden"
-                      style={{ animation: "typing 0.3s steps(40, end) forwards" }}
-                    >
-                        {line}
-                    </div>
-                ))}
-                <div className="w-4 h-6 bg-cyan-500 animate-pulse mt-4" />
+        <div ref={containerRef} className="fixed inset-0 z-[10000] overflow-hidden bg-black select-none font-mono text-cyan-500">
+            {/* Top Shutter */}
+            <div 
+              ref={shutterTopRef} 
+              className="absolute top-0 left-0 w-full h-1/2 bg-[#020202] border-b border-cyan-500/30 flex flex-col justify-end p-8 overflow-hidden z-25"
+            >
+                <div className="absolute inset-0 opacity-[0.05] cyber-grid-animate" style={{
+                    backgroundImage: `linear-gradient(to right, #06b6d4 1px, transparent 1px), linear-gradient(to bottom, #06b6d4 1px, transparent 1px)`,
+                    backgroundSize: '20px 20px'
+                }} />
+                
+                <div className="flex justify-between items-center text-[10px] opacity-60 relative z-10">
+                    <span>HOST: AADITYA104_MY_PORTFOLIO</span>
+                    <span>SECURE BOOT // ENG V4.0.2</span>
+                </div>
             </div>
-            <style dangerouslySetInnerHTML={{ __html: `
-              @keyframes typing { from { width: 0; } to { width: 100%; } }
-            `}} />
+
+            {/* Bottom Shutter */}
+            <div 
+              ref={shutterBottomRef} 
+              className="absolute bottom-0 left-0 w-full h-1/2 bg-[#020202] border-t border-cyan-500/30 p-8 overflow-hidden z-25"
+            >
+                <div className="absolute inset-0 opacity-[0.05] cyber-grid-animate" style={{
+                    backgroundImage: `linear-gradient(to right, #06b6d4 1px, transparent 1px), linear-gradient(to bottom, #06b6d4 1px, transparent 1px)`,
+                    backgroundSize: '20px 20px'
+                }} />
+
+                <div className="flex justify-between items-center text-[10px] opacity-60 mb-6 relative z-10">
+                    <span>KERNEL: CONNECTED_SECURE</span>
+                    <span>CPU_ALLOC: AUTO_NODE</span>
+                </div>
+
+                <div className="max-w-xl mx-auto w-full relative z-10">
+                    <div className="flex justify-between text-[10px] mb-2 font-bold uppercase tracking-wider">
+                        <span className="animate-pulse">{statusText}</span>
+                        <span>{progress}%</span>
+                    </div>
+                    <div className="w-full h-3 bg-black border border-cyan-500/20 rounded overflow-hidden p-[2px]">
+                        <div 
+                          className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 shadow-[0_0_10px_#06b6d4] transition-all duration-75"
+                          style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Diagnostics HUD Overlay */}
+            {!isExiting && (
+                <div className="absolute inset-0 z-20 flex flex-col md:grid md:grid-cols-3 p-10 pt-24 pb-24 items-center gap-6 justify-center">
+                    {/* Left Panel */}
+                    <div className="w-full h-[200px] md:h-[350px] overflow-hidden border border-cyan-500/10 bg-black/40 backdrop-blur p-4 rounded text-[9px] text-cyan-400/80 leading-relaxed font-mono flex flex-col-reverse justify-start">
+                        <div className="space-y-1">
+                            {consoleLogs.map((log, idx) => (
+                                <div key={idx} className="truncate">
+                                    <span className="text-cyan-600 font-bold pr-2">&gt;</span>{log}
+                                </div>
+                            ))}
+                            <div className="w-2 h-3.5 bg-cyan-400 animate-pulse inline-block" />
+                        </div>
+                    </div>
+
+                    {/* Center Core */}
+                    <div ref={coreRef} className="flex flex-col items-center justify-center p-6 relative">
+                        <div className="relative w-48 h-48 flex items-center justify-center">
+                            <div className="absolute text-center">
+                                <span className="text-4xl md:text-5xl font-black tracking-tighter text-white drop-shadow-[0_0_15px_#06b6d4]">{progress}%</span>
+                                <div className="text-[7px] text-cyan-400/60 uppercase tracking-widest mt-1 font-bold">AI_CORE_READY</div>
+                            </div>
+                            <svg className="absolute w-full h-full text-cyan-500 animate-spin" style={{ animationDuration: '8s' }} viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="5 3" />
+                            </svg>
+                            <svg className="absolute w-[80%] h-[80%] text-cyan-400 animate-spin" style={{ animationDuration: '4s', animationDirection: 'reverse' }} viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="15 8" />
+                            </svg>
+                            <div className="absolute w-[70%] h-[70%] border border-cyan-500/10 rounded-full bg-cyan-500/[0.02] shadow-[0_0_30px_rgba(6,182,212,0.15)] animate-pulse" />
+                        </div>
+                        <div className="text-[10px] text-white font-bold tracking-[0.4em] uppercase mt-6 text-center select-none">
+                            ADITYA_DEVMURARI_OS
+                        </div>
+                    </div>
+
+                    {/* Right Panel */}
+                    <div className="w-full h-[200px] md:h-[350px] border border-cyan-500/10 bg-black/40 backdrop-blur p-6 rounded flex flex-col justify-around text-xs leading-none">
+                        <div className="text-[10px] font-bold border-b border-cyan-500/20 pb-2 mb-2 tracking-widest uppercase">
+                            SYSTEM_HARDWARE_METERS
+                        </div>
+                        {[
+                            { name: "CPU CORE LOAD", val: Math.min(progress * 1.1, 88) },
+                            { name: "MEMORY BUFFER", val: Math.min(progress * 0.9 + 10, 94) },
+                            { name: "NETWORK NODE RATE", val: Math.min(progress * 1.3, 100) },
+                            { name: "GPU SHADER CACHE", val: Math.min(progress * 0.7, 72) },
+                        ].map((m, idx) => (
+                            <div key={idx} className="space-y-2">
+                                <div className="flex justify-between text-[9px] tracking-wider uppercase opacity-80">
+                                    <span>{m.name}</span>
+                                    <span>{Math.round(m.val)}%</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-black border border-cyan-500/10 p-[1px] rounded overflow-hidden">
+                                    <div 
+                                      className="h-full bg-cyan-500 transition-all duration-300 shadow-[0_0_5px_#06b6d4]" 
+                                      style={{ width: `${m.val}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -625,6 +770,154 @@ const MagneticElement = ({ children, className }: { children: React.ReactNode, c
     );
 };
 
+// ============================================================
+// 3.5 DYNAMIC ANIMATING HELPER COMPONENTS
+// ============================================================
+
+// High-speed HUD Rolling Count Up Stat card
+const StatCard = ({ label, value }: { label: string; value: string }) => {
+    const [displayVal, setDisplayVal] = useState("0");
+    const cardRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    const numericMatch = value.match(/\d+/);
+                    if (numericMatch) {
+                        const target = parseInt(numericMatch[0]);
+                        const suffix = value.replace(numericMatch[0], "");
+                        
+                        let current = 0;
+                        const duration = 1200;
+                        const steps = 40;
+                        const stepTime = duration / steps;
+                        const increment = target / steps;
+
+                        const timer = setInterval(() => {
+                            current += increment;
+                            if (current >= target) {
+                                setDisplayVal(`${target}${suffix}`);
+                                clearInterval(timer);
+                            } else {
+                                setDisplayVal(`${Math.round(current)}${suffix}`);
+                            }
+                        }, stepTime);
+                        
+                        observer.disconnect();
+                    } else {
+                        setDisplayVal(value);
+                    }
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (cardRef.current) {
+            observer.observe(cardRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, [value]);
+
+    return (
+        <div 
+          ref={cardRef} 
+          className="reveal-up p-8 border border-white/5 group hover:bg-cyan-500 transition-all duration-500 overflow-hidden relative hover-target"
+        >
+            <div className="absolute top-0 left-0 w-full h-1 bg-cyan-500 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out" />
+            <p className="text-4xl md:text-6xl font-black mb-3 group-hover:text-black transition-colors duration-300">
+                {displayVal}
+            </p>
+            <p className="text-[10px] md:text-xs font-mono text-gray-500 uppercase group-hover:text-black transition-colors duration-300">
+                {label}
+            </p>
+        </div>
+    );
+};
+
+// 3D Tilt HUD aiming reticle project card
+const ProjectCard = ({ p, i }: { p: typeof ProfileData.projects[0]; i: number }) => {
+    const cardRef = useRef<HTMLAnchorElement>(null);
+    const targetRef = useRef<HTMLDivElement>(null);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        const card = cardRef.current;
+        const target = targetRef.current;
+        if (!card) return;
+
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const rx = ((y / rect.height) - 0.5) * -15;
+        const ry = ((x / rect.width) - 0.5) * 15;
+
+        card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.02)`;
+        
+        if (target) {
+            target.style.left = `${x}px`;
+            target.style.top = `${y}px`;
+            target.style.opacity = "1";
+        }
+    };
+
+    const handleMouseLeave = () => {
+        const card = cardRef.current;
+        const target = targetRef.current;
+        if (!card) return;
+
+        card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
+        if (target) {
+            target.style.opacity = "0";
+        }
+    };
+
+    return (
+        <a 
+          ref={cardRef}
+          href={p.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          className="hover-target w-[85vw] h-[60vh] md:w-[450px] md:h-[550px] shrink-0 bg-[#050505] text-white p-8 md:p-14 flex flex-col justify-between group transition-all duration-300 shadow-[0_0_30px_rgba(0,0,0,0.8)] border border-white/10 hover:border-cyan-500/50 relative overflow-hidden"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+            <div className="absolute inset-0 z-0 pointer-events-none bg-black">
+                {GetCardAnimation(p.tech, i)}
+                <div className="absolute inset-0 bg-black/60 group-hover:bg-black/10 transition-colors duration-500" />
+            </div>
+
+            <div 
+              ref={targetRef} 
+              className="absolute pointer-events-none w-10 h-10 border border-cyan-500/40 rounded-full -ml-5 -mt-5 transition-opacity duration-300 opacity-0 mix-blend-screen flex items-center justify-center z-10"
+              style={{ transitionProperty: "opacity" }}
+            >
+                <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full" />
+                <div className="absolute w-[2px] h-3 bg-cyan-500/60" />
+                <div className="absolute w-3 h-[2px] bg-cyan-500/60" />
+            </div>
+
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[size:100%_4px,3px_100%] pointer-events-none opacity-0 group-hover:opacity-20 transition-opacity" />
+
+            <div className="flex justify-between items-start relative z-10" style={{ transform: "translateZ(20px)" }}>
+                <span className="font-mono text-[10px] md:text-xs opacity-50 group-hover:text-cyan-400 transition-colors bg-black/50 px-2 py-1 rounded">MODULE_{String(i+1).padStart(2, '0')}</span>
+                <span className="text-3xl md:text-4xl group-hover:text-cyan-400 transition-colors transform group-hover:translate-x-2 group-hover:-translate-y-2 duration-300 drop-shadow-lg">↗</span>
+            </div>
+            
+            <div className="relative z-10 bg-gradient-to-t from-black via-black/80 to-transparent pt-10 -mx-8 -mb-8 px-8 pb-8 md:-mx-14 md:-mb-14 md:px-14 md:pb-14" style={{ transform: "translateZ(40px)" }}>
+                <p className="font-mono text-[10px] md:text-xs text-cyan-500 mb-3 uppercase drop-shadow">Tech: {p.tech}</p>
+                <h3 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase leading-tight md:leading-none mb-6 group-hover:text-white transition-colors whitespace-normal break-words drop-shadow-xl">{p.title}</h3>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] text-cyan-500/80 uppercase">{p.metric}</span>
+                  <div className="w-12 h-1 bg-white/20 group-hover:bg-cyan-500 transition-all duration-500 group-hover:w-24 shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
+                </div>
+            </div>
+        </a>
+    );
+};
+
 export default function Home() {
   const [booted, setBooted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -787,6 +1080,21 @@ export default function Home() {
         tl.fromTo(bullets, { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.5, stagger: 0.1, ease: "power2.out" }, "-=0.4");
       });
 
+      // Active Timeline Line Draw Trigger
+      gsap.fromTo(".timeline-drawn-line", 
+        { scaleY: 0 }, 
+        { 
+          scaleY: 1, 
+          ease: "none",
+          scrollTrigger: {
+            trigger: ".chronicle-logs-container",
+            start: "top 60%",
+            end: "bottom 80%",
+            scrub: true
+          }
+        }
+      );
+
       return () => {
         window.removeEventListener("mousemove", handleGlobalMouseMove);
       };
@@ -863,11 +1171,7 @@ export default function Home() {
       <section className="py-32 px-6 md:px-20 border-y border-white/10 bg-black/80 backdrop-blur-sm relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 max-w-7xl mx-auto">
               {ProfileData.stats.map((stat, i) => (
-                  <div key={i} className="reveal-up p-8 border border-white/5 group hover:bg-cyan-500 transition-all duration-500 overflow-hidden relative hover-target">
-                      <div className="absolute top-0 left-0 w-full h-1 bg-cyan-500 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out" />
-                      <p className="text-4xl md:text-6xl font-black mb-3 group-hover:text-black transition-colors duration-300">{stat.value}</p>
-                      <p className="text-[10px] md:text-xs font-mono text-gray-500 uppercase group-hover:text-black transition-colors duration-300">{stat.label}</p>
-                  </div>
+                  <StatCard key={i} label={stat.label} value={stat.value} />
               ))}
           </div>
       </section>
@@ -888,32 +1192,7 @@ export default function Home() {
                 </div>
 
                 {ProfileData.projects.map((p, i) => (
-                    <a 
-                      key={i} 
-                      href={p.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover-target w-[80vw] h-[60vh] md:w-[450px] md:h-[550px] shrink-0 bg-[#050505] text-white p-8 md:p-14 flex flex-col justify-between group transition-all duration-500 shadow-[0_0_30px_rgba(0,0,0,0.8)] border border-white/10 hover:border-cyan-500/50 relative overflow-hidden"
-                    >
-                        {/* Video Background */}
-                        <div className="absolute inset-0 z-0 pointer-events-none bg-black">
-                            {GetCardAnimation(p.tech, i)}
-                            <div className="absolute inset-0 bg-black/60 group-hover:bg-black/20 transition-colors duration-500" />
-                        </div>
-
-                        <div className="flex justify-between items-start relative z-10">
-                            <span className="font-mono text-[10px] md:text-xs opacity-50 group-hover:text-cyan-400 transition-colors bg-black/50 px-2 py-1 rounded">MODULE_{String(i+1).padStart(2, '0')}</span>
-                            <span className="text-3xl md:text-4xl group-hover:text-cyan-400 transition-colors transform group-hover:translate-x-2 group-hover:-translate-y-2 duration-300 drop-shadow-lg">↗</span>
-                        </div>
-                        <div className="relative z-10 bg-gradient-to-t from-black via-black/80 to-transparent pt-10 -mx-8 -mb-8 px-8 pb-8 md:-mx-14 md:-mb-14 md:px-14 md:pb-14">
-                            <p className="font-mono text-[10px] md:text-xs text-cyan-500 mb-3 uppercase drop-shadow">Tech: {p.tech}</p>
-                            <h3 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase leading-tight md:leading-none mb-6 group-hover:text-white transition-colors whitespace-normal break-words drop-shadow-xl">{p.title}</h3>
-                            <div className="flex items-center justify-between">
-                              <span className="font-mono text-[10px] text-cyan-500/80 uppercase">{p.metric}</span>
-                              <div className="w-12 h-1 bg-white/20 group-hover:bg-cyan-500 transition-all duration-500 group-hover:w-24 shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
-                            </div>
-                        </div>
-                    </a>
+                    <ProjectCard key={i} p={p} i={i} />
                 ))}
             </div>
         </div>
@@ -949,10 +1228,17 @@ export default function Home() {
       </section>
 
       {/* 8. EXPERIENCE - PERSPECTIVE LIST */}
-      <section className="py-20 md:py-40 px-6 md:px-20 border-t border-white/10 bg-[#020202] relative z-10 overflow-hidden">
+      <section className="chronicle-logs-container py-20 md:py-40 px-6 md:px-20 border-t border-white/10 bg-[#020202] relative z-10 overflow-hidden">
           <h2 className="reveal-up text-3xl md:text-5xl font-mono text-cyan-500 mb-20 md:mb-32 tracking-[0.3em] md:tracking-[1em] text-center opacity-70 uppercase">Chronicle_Logs</h2>
           
-          <div className="max-w-5xl mx-auto relative border-l border-white/10 py-10">
+          <div className="max-w-5xl mx-auto relative py-10">
+              {/* Underlying thin track line */}
+              <div className="absolute top-0 bottom-0 left-0 w-[1px] bg-white/10" />
+              {/* Active scroll-drawn glowing line */}
+              <div 
+                className="absolute top-0 left-0 w-[2px] bg-gradient-to-b from-cyan-500 to-rose-500 shadow-[0_0_8px_#06b6d4] origin-top timeline-drawn-line" 
+                style={{ height: "100%", transformOrigin: "top" }}
+              />
               {ProfileData.experience.map((exp, i) => (
                   <div key={i} className="exp-block group relative pl-8 md:pl-16 mb-32 md:mb-40 last:mb-0">
                       

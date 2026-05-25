@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server';
 
 const ADITYA_FACTS_TEXT = `
-ADITYA DEVMURARI — COMPLETE PORTFOLIO & RESUME FACT SHEET
-==========================================================
+ADITYA DEVMURARI — COMPLETE PROFILE
+=====================================
 CONTACT:
   Phone: +91-7046387404
   Email: devmurariaaditya@gmail.com
@@ -22,7 +22,7 @@ CORE PORTFOLIO STATS:
   - Frontend Optimization Loading Speedup: +15%
   - Cross-Browser Interface Compatibility: 100%
 
-TECHNICAL STILLS:
+TECHNICAL SKILLS:
   Languages: Python, JavaScript, HTML5, CSS3, Solidity
   Frameworks: React.js, Next.js, Node.js, Tailwind CSS, FastAPI, Scikit-learn
   Databases & Tools: MySQL, PostgreSQL, MongoDB, Firebase, Git, GitHub
@@ -47,198 +47,151 @@ WORK EXPERIENCE:
    • Developed responsive interfaces with 100% cross-browser compatibility.
    • Enhanced front-end performance, reducing page load times by approximately 15%.
 
-ALL 15 PORTFOLIO DEPLOYMENTS & REPOSITORIES:
-1. **ETH.VOTE (Blockchain Voting DApp)** — Tech: Solidity/Web3, FastAPI, React, Next.js. Flagship platform ensuring 100% data integrity with EIP-712 structured signing.
-   URL: https://github.com/AADITYA104/Voting-System-Using-Block-Chain-Master
-2. **AI Threat Detection (Security Scanner)** — Tech: Python, Scikit-learn, Machine Learning. DESIGNED network traffic anomaly detector with 92% accuracy.
-   URL: https://github.com/AADITYA104/Threat-Detection-in-Cyber-Security-Using-AI-master
-3. **Healthcare AI Assistant (NLP Chatbot)** — Tech: Python, NLP, AI Agents. Reduces patient triage response times by 40%.
-   URL: https://github.com/AADITYA104/Health-Care-Chatbot-
-4. **Fake News Detection** — Tech: Python/ML, NLP. Classifies statement credibility with modern text classification analysis.
-   URL: https://github.com/AADITYA104/Fake-News-Detection
-5. **Dynamic Face Lift** — Tech: Python, OpenCV, Computer Vision. Real-time nodal mesh landmarker for dynamic facial adjustments.
-   URL: https://github.com/AADITYA104/dynamic-face-lift
-6. **NetGuard** — Tech: Cyber Security, Python. Network monitoring packet filter.
-   URL: https://github.com/AADITYA104/NetGuard
-7. **Portfolio Kinju** — Tech: React, Next.js. Stunning, high-fidelity landing UI.
-   URL: https://github.com/AADITYA104/protfolio-kinju
-8. **InspectFlow Sync** — Tech: Full Stack, Automation. Synced telemetry pipelines for automated workflows.
-   URL: https://github.com/AADITYA104/inspectflow-sync
-9. **CXBulk** — Tech: Backend, Scale. High-throughput database automation utility.
-   URL: https://github.com/AADITYA104/CXBulk
-10. **Codexservice** — Tech: Backend, API. Highly scalable API gateway.
-    URL: https://github.com/AADITYA104/Codexservice
-11. **QR Code Page** — Tech: Frontend, HTML/CSS. Utility scanner layout.
-    URL: https://github.com/AADITYA104/QR-CODE-PAGE
-12. **DigiVault** — Tech: Security, Web. Encrypted locker system.
-    URL: https://github.com/YogeshTundiya/Digivualt
-13. **Gym Pro System** — Tech: Full Stack. Management platform with concentric progress meters.
-    URL: https://github.com/YogeshTundiya/Gym_pro_system
-14. **Lifeconnect** — Tech: Web App. Social connector platform.
-    URL: https://github.com/YogeshTundiya/Lifeconnect
-15. **Gov Portal** — Tech: Full Stack. Public administration system.
-    URL: https://github.com/YogeshTundiya/Gov-porject
+EDUCATION:
+  • B.Tech in Information Technology — Gyanmanjari Innovative University (GMIU), Gujarat
+  • Diploma in Computer Engineering — Gyanmanjari Institute of Technology (GMIT), CGPA: 7.84
+
+KEY PROJECTS (15 total):
+1. ETH.VOTE — Solidity/Web3, FastAPI, React, Next.js. Decentralized voting with EIP-712 structured signing and 100% data integrity.
+   GitHub: https://github.com/AADITYA104/Voting-System-Using-Block-Chain-Master
+2. AI Threat Detection — Python, Scikit-learn, ML. Network traffic anomaly detector, 92% accuracy.
+   GitHub: https://github.com/AADITYA104/Threat-Detection-in-Cyber-Security-Using-AI-master
+3. Healthcare AI Assistant — Python, NLP, AI Agents. Reduces patient triage time by 40%.
+   GitHub: https://github.com/AADITYA104/Health-Care-Chatbot-
+4. Fake News Detection — Python/ML, NLP. Statement credibility classifier.
+   GitHub: https://github.com/AADITYA104/Fake-News-Detection
+5. Dynamic Face Lift — Python, OpenCV. Real-time nodal mesh face landmarker.
+   GitHub: https://github.com/AADITYA104/dynamic-face-lift
+6. NetGuard — Python, Cybersecurity. Network monitoring packet filter.
+   GitHub: https://github.com/AADITYA104/NetGuard
+7. Portfolio Kinju — React, Next.js. Modern UI.
+   GitHub: https://github.com/AADITYA104/protfolio-kinju
+8. InspectFlow Sync — Full Stack, Automation. Synced telemetry pipelines.
+   GitHub: https://github.com/AADITYA104/inspectflow-sync
+9. CXBulk — Backend, Scale. High-throughput database automation.
+   GitHub: https://github.com/AADITYA104/CXBulk
+10. Codexservice — Backend, API. Scalable API gateway.
+    GitHub: https://github.com/AADITYA104/Codexservice
+11. QR Code Page — Frontend. Utility scanner layout.
+    GitHub: https://github.com/AADITYA104/QR-CODE-PAGE
+12. DigiVault — Web/Security. Encrypted locker system.
+    GitHub: https://github.com/YogeshTundiya/Digivualt
+13. Gym Pro System — Full Stack. Management platform.
+    GitHub: https://github.com/YogeshTundiya/Gym_pro_system
+14. Lifeconnect — Web App. Social connector platform.
+    GitHub: https://github.com/YogeshTundiya/Lifeconnect
+15. Gov Portal — Full Stack. Public administration system.
+    GitHub: https://github.com/YogeshTundiya/Gov-porject
 `;
 
+// ─── Natural-sounding fallback responses (no robotic bullet walls) ───────────
+
 const LOCAL_RESPONSES: Record<string, string> = {
-  eth_vote: `### ⬡ ETH.VOTE — Decentralized Blockchain Voting DApp (Flagship Project)
+  eth_vote: `Honestly, ETH.VOTE is the project I'd point to first when someone asks what Aditya can do.
 
-**ETH.VOTE** is Aditya's premier engineering milestone, built end-to-end to bridge traditional web systems with secure, decentralized ledger technology. 
+He built it end-to-end during his internship at Aksharraj Infotech — a fully decentralized voting DApp that runs on Ethereum. The interesting part isn't just that it uses Solidity smart contracts. It's that he implemented **EIP-712 structured data hashing and signing**, which is the industry standard for preventing vote tampering and Sybil attacks. Most junior devs wouldn't even know what that is, let alone ship it.
 
-#### 🛠️ Technical Architecture & Implementation:
-• **Blockchain & Cryptography Layer**: Built using **Solidity smart contracts** for transparent, immutable vote ledger management. He integrated **EIP-712 structured data hashing and signing**, which eliminates vote tampering and defends against Sybil attacks by enforcing secure cryptographic voter identities.
-• **Backend Infrastructure**: Powered by **FastAPI (Python)** to manage off-chain data processing, coordinate API calls, and maintain sub-millisecond database updates.
-• **Frontend HUD**: Designed using **Next.js & React.js** to deliver a responsive, latency-free user experience, ensuring 100% cross-browser compatibility and seamless Web3 wallet handshakes.
+The stack: Solidity for the smart contract layer, FastAPI (Python) for the off-chain backend, and Next.js/React for the frontend. The whole thing is production-ready with 100% data integrity guaranteed by the blockchain.
 
-#### 📈 Business Value & Takeaways:
-• **High Security Mindset**: Demonstrates Aditya's expertise in security patterns, cryptography standards, and trust-based systems rather than just standard UI components.
-• **Full-Stack Competence**: Proves his ability to design, develop, compile, and deploy systems that run flawlessly across frontend, backend, and protocol levels.
+You can see the full codebase here: [ETH.VOTE on GitHub](https://github.com/AADITYA104/Voting-System-Using-Block-Chain-Master)
 
-#### 🔗 Project Uplink:
-You can check out the complete codebase here: [ETH.VOTE GitHub Repository](https://github.com/AADITYA104/Voting-System-Using-Block-Chain-Master)`,
-  
-  hire: `### 💼 Why Aditya Devmurari is a High-Leverage Hire
+If you want to discuss the project in more detail or set up a call, Aditya's reachable at +91-7046387404 or devmurariaaditya@gmail.com.`,
 
-Aditya is a highly specialized Full Stack and AI Engineer who compresses massive product value into 2+ years of execution:
+  hire: `Here's the honest case for Aditya:
 
-1. **R&D Innovation Depth**: As an R&D Engineer at Gyanmanjari University, he owned the architecture of 4+ major innovation projects, designing a core prototype that boosted data processing speeds by **30%**.
-2. **Applied AI & ML Precision**: At Mexgen Technologies, he engineered pipeline architectures that achieved **95% predictive accuracy**, successfully reducing manual business data entry operations by **20%**.
-3. **Decentralized Cryptography Skills**: Shipped flagship products like **ETH.VOTE** end-to-end, writing Solidity smart contracts and implementing EIP-712 structured signatures.
-4. **Mentorship & Leadership**: Guided a team of **10+ junior developers** through full Software Development Lifecycles (SDLC), proving strong cultural fit and collaboration skills.
+He's got 2+ years of hands-on experience across four different technical domains — full stack web, applied AI/ML, blockchain/Web3, and R&D engineering. That breadth is rare. Most developers specialize early. He didn't.
 
-He is highly responsive, active, and fully available for remote roles or relocation. Shall I share his direct email and phone number to arrange an interview?`,
-  
-  projects: `### 🚀 Shipped Flagship Projects & All 15 Deployments
+At Gyanmanjari University's R&D department, he led 4+ innovation projects and improved a data processing prototype by 30%. At Mexgen Technologies, he built ML pipelines that hit 95% predictive accuracy and cut manual data entry by 20%. At Aksharraj Infotech, he shipped ETH.VOTE — a production blockchain DApp — from scratch. And he mentored 10+ junior developers along the way.
 
-Aditya has deployed **15 software modules** spanning AI, Web3, and Enterprise Automation. Here is his complete project directory:
+He's fluent in Python, JavaScript, Solidity, React/Next.js, FastAPI, and multiple databases. He's built real products, not just tutorials.
 
-#### 1. Flagship Productions:
-• **ETH.VOTE (Web3/Solidity)**: Decentralized blockchain voting using EIP-712 structured signatures. [GitHub Link](https://github.com/AADITYA104/Voting-System-Using-Block-Chain-Master)
-• **AI Threat Detection (Python/ML)**: Security-focused network anomaly detector with **92% accuracy**. [GitHub Link](https://github.com/AADITYA104/Threat-Detection-in-Cyber-Security-Using-AI-master)
-• **Healthcare AI Assistant (NLP/AI)**: Patient symptoms conversational assistant reducing triage times by **40%**. [GitHub Link](https://github.com/AADITYA104/Health-Care-Chatbot-)
+If you want to move forward, the fastest way is a direct call: +91-7046387404. Or email him at devmurariaaditya@gmail.com. He's typically responsive within a few hours.`,
 
-#### 2. Advanced AI & Computer Vision:
-• **Dynamic Face Lift**: Real-time OpenCV nodal facial landmarker. [GitHub Link](https://github.com/AADITYA104/dynamic-face-lift)
-• **Fake News Detection**: Automated NLP statement classification tool. [GitHub Link](https://github.com/AADITYA104/Fake-News-Detection)
+  projects: `Aditya has 15 deployed projects across AI, blockchain, and full-stack web. Here's the breakdown:
 
-#### 3. Automation & Scale Systems:
-• **InspectFlow Sync**: High-speed automated telemetry pipeline. [GitHub Link](https://github.com/AADITYA104/inspectflow-sync)
-• **CXBulk**: Enterprise high-throughput database automation. [GitHub Link](https://github.com/AADITYA104/CXBulk)
-• **Codexservice**: Scalable API gateway node. [GitHub Link](https://github.com/AADITYA104/Codexservice)
-• **NetGuard**: Secure packet capture packet filter tool. [GitHub Link](https://github.com/AADITYA104/NetGuard)
-• **QR Code Page**: Responsive scanner alignment utility. [GitHub Link](https://github.com/AADITYA104/QR-CODE-PAGE)
-• **Portfolio Kinju**: High-fidelity modern Next.js UI. [GitHub Link](https://github.com/AADITYA104/protfolio-kinju)
+**Flagship work:**
+- [ETH.VOTE](https://github.com/AADITYA104/Voting-System-Using-Block-Chain-Master) — Blockchain voting DApp with EIP-712 cryptography (Solidity + FastAPI + Next.js)
+- [AI Threat Detection](https://github.com/AADITYA104/Threat-Detection-in-Cyber-Security-Using-AI-master) — Network intrusion scanner, 92% accuracy (Python + Scikit-learn)
+- [Healthcare AI Chatbot](https://github.com/AADITYA104/Health-Care-Chatbot-) — Patient triage assistant, 40% faster response times (NLP + Python)
 
-#### 4. Shared Collaboration Deployments:
-• **DigiVault**: Encrypted locker vault. [GitHub Link](https://github.com/YogeshTundiya/Digivualt)
-• **Gym Pro System**: Fitness administration hub. [GitHub Link](https://github.com/YogeshTundiya/Gym_pro_system)
-• **Lifeconnect**: Social web interface DApp. [GitHub Link](https://github.com/YogeshTundiya/Lifeconnect)
-• **Gov Portal**: Public administration portal. [GitHub Link](https://github.com/YogeshTundiya/Gov-porject)
+**Computer Vision & ML:**
+- [Dynamic Face Lift](https://github.com/AADITYA104/dynamic-face-lift) — Real-time face mesh tracking (OpenCV)
+- [Fake News Detection](https://github.com/AADITYA104/Fake-News-Detection) — NLP statement classifier
 
-Which specific module codebase would you like to review?`,
-  
-  skills: `### 🛠️ Technical Stack & Domain Expertise
+**Infrastructure & Automation:**
+- [InspectFlow Sync](https://github.com/AADITYA104/inspectflow-sync), [CXBulk](https://github.com/AADITYA104/CXBulk), [Codexservice](https://github.com/AADITYA104/Codexservice), [NetGuard](https://github.com/AADITYA104/NetGuard)
 
-Aditya moves across languages and frameworks without losing product focus:
+**Collaborative work:** DigiVault, Gym Pro System, Lifeconnect, Gov Portal — all on GitHub under shared repos.
 
-• **Programming Languages**: Python (applied data science, AI workflows), JavaScript (React/Next.js dynamic rendering), Solidity (blockchain consensus, secure smart contracts), HTML5/CSS3.
-• **Web & Backend Frameworks**: Next.js, React.js, Node.js, FastAPI, Tailwind CSS.
-• **AI, Machine Learning & Web3**: NLP models, AI Agent pipelines, Scikit-learn, Web3.js, EIP-712 Cryptography.
-• **Database & DevOps Tools**: PostgreSQL, MySQL, MongoDB, Firebase, Git, GitHub.
+Which ones are you most curious about?`,
 
-#### 💡 The Aditya Advantage:
-Unlike typical frontend-only or backend-only engineers, Aditya combines full-stack web agility with **applied AI and blockchain security**. He builds intelligent automation systems that add measurable efficiency. Would you like me to share a link to his GitHub or LinkedIn profile?`,
-  
-  experience: `### 📈 Professional Experience & Contributions
+  skills: `Aditya's stack covers a pretty wide range:
 
-Aditya has driven technical outcomes across R&D, corporate AI development, and internships:
+**Languages:** Python (his strongest — used for all AI/ML work), JavaScript (React/Next.js), Solidity (smart contracts), HTML/CSS.
 
-1. **Aksharraj Infotech — Full Stack Developer Intern (Feb 2026 – Apr 2026)**
-   • Shipped ETH.VOTE end-to-end, integrating decentralized Web3 security with FastAPI/React.
-2. **Gyanmanjari Innovative University — R&D Engineer (Feb 2024 – Jan 2026)**
-   • Owned R&D for 4+ innovative software platforms, improving processing efficiency by **30%** and mentoring **10+ juniors**.
-3. **Mexgen Technologies — Junior AI/ML Developer (Jul 2025 – Jan 2026)**
-   • Reached **95% modeling precision** for automated enterprise data pipelines, reducing manual input by **20%**.
-4. **IT Hub — Frontend Developer (Nov 2024 – Dec 2024)**
-   • Designed responsive JS interfaces with 100% cross-browser compatibility, boosting loading speed by **15%**.`,
-  
-  contact: `### 📞 Direct Contact Information
+**Frameworks & Tools:** Next.js, React.js, Node.js, FastAPI, Tailwind CSS, Scikit-learn.
 
-You can contact Aditya Devmurari directly to discuss job openings, project collaborations, or consultation work:
+**Databases:** PostgreSQL, MySQL, MongoDB, Firebase.
 
-• **Phone & WhatsApp**: [+91-7046387404](tel:+917046387404)
-• **Email**: [devmurariaaditya@gmail.com](mailto:devmurariaaditya@gmail.com)
-• **LinkedIn**: [linkedin.com/in/devmurari-aditya](https://linkedin.com/in/devmurari-aditya)
-• **GitHub**: [github.com/AADITYA104](https://github.com/AADITYA104)
+**Web3:** Solidity, Web3.js, EIP-712 cryptography.
 
-He is highly responsive across all channels. Would you like me to draft an email introduction for you?`,
+What sets him apart from a typical full-stack developer is the combination of applied AI/ML (he's shipped production ML systems) with blockchain/Web3 (he's written and deployed Solidity smart contracts in production). Most developers do one or the other, not both.
 
-  threat: `### 🛡️ AI-Driven Threat Detection System
+Want links to his GitHub or LinkedIn to see the work directly?`,
 
-Designed as a core cyber-security module, this project is a machine-learning network intrusion scanner built using **Python and Scikit-learn**.
+  experience: `Here's the quick timeline:
 
-• **Achievement**: Reached a verified **92% anomaly detection accuracy** in classifying clean network traffic vs active server intrusions.
-• **Technical implementation**: Optimized data pipelines for high-throughput packet feature vectors, allowing active intrusion prevention.
-• **GitHub Node**: [Threat Detection Repository](https://github.com/AADITYA104/Threat-Detection-in-Cyber-Security-Using-AI-master)`,
+**Aksharraj Infotech** (Feb–Apr 2026) — Full Stack Developer Intern. Built ETH.VOTE end-to-end, implemented EIP-712 blockchain security, worked in daily agile sprints.
 
-  healthcare: `### 🩺 Healthcare AI Conversational Agent
+**Mexgen Technologies** (Jul 2025–Jan 2026) — Junior AI/ML Developer. Built ML models at 95% predictive accuracy, cut manual data entry by 20%, deployed AI agents to production platforms.
 
-An NLP-powered virtual triage assistant built to automate preliminary patient symptom mapping.
+**Gyanmanjari University** (Feb 2024–Jan 2026) — R&D Engineer. Led 4+ innovation projects, improved data processing by 30%, mentored 10+ junior developers through full SDLC cycles.
 
-• **Achievement**: Successfully reduced patient initial triage and response time by **40%**.
-• **Technical implementation**: Built using custom Python NLP models and AI agent loops, bridging natural language queries with medical databases.
-• **GitHub Node**: [Healthcare Chatbot Repository](https://github.com/AADITYA104/Health-Care-Chatbot-)`,
+**IT Hub** (Nov–Dec 2024) — Frontend Developer. Delivered 100% cross-browser compatible interfaces, improved page load times by 15%.
 
-  facelift: `### 👁️ Dynamic Face Lift (Computer Vision)
+That's roughly 2+ years of concurrent and back-to-back roles across different technical domains. His resume is available directly through Aditya — reach him at devmurariaaditya@gmail.com.`,
 
-A highly responsive real-time face mesh landmark detection tool built using **Python and OpenCV**.
+  contact: `Here's how to reach Aditya directly:
 
-• **Technical Details**: Maps dynamic nodal mesh tracking points to analyze facial contours and apply visual adjustments instantly.
-• **GitHub Node**: [Dynamic Face Lift Repository](https://github.com/AADITYA104/dynamic-face-lift)`,
+- **Phone / WhatsApp:** [+91-7046387404](tel:+917046387404)
+- **Email:** [devmurariaaditya@gmail.com](mailto:devmurariaaditya@gmail.com)
+- **LinkedIn:** [linkedin.com/in/devmurari-aditya](https://linkedin.com/in/devmurari-aditya)
+- **GitHub:** [github.com/AADITYA104](https://github.com/AADITYA104)
 
-  fakenews: `### 📰 Fake News Detection System
+He's based in Gujarat, India and is highly responsive — usually replies within a few hours. Open to remote positions, contract work, or relocation.`,
 
-An advanced natural language processing (NLP) application engineered to classify the validity of news articles.
+  threat: `The AI Threat Detection project is one of Aditya's core ML builds.
 
-• **Technical Details**: Uses Python ML classifiers to process semantic vectors and assign credibility scores.
-• **GitHub Node**: [Fake News Detection Repository](https://github.com/AADITYA104/Fake-News-Detection)`,
+He designed a network intrusion detection system using Python and Scikit-learn. The model classifies network traffic as clean or malicious with **92% accuracy**, and was optimized for high-throughput packet feature vectors to handle real-time scanning.
 
-  netguard: `### 🔒 NetGuard Security packet capture
+It's a strong signal that he understands applied ML beyond just training models — he thought through the data pipeline, feature engineering, and performance constraints of a security-critical system.
 
-A network-packet capture and security guard tool built to filter active traffic, block malicious nodes, and monitor server uplinks.
+Full codebase: [GitHub](https://github.com/AADITYA104/Threat-Detection-in-Cyber-Security-Using-AI-master)`,
 
-• **GitHub Node**: [NetGuard Repository](https://github.com/AADITYA104/NetGuard)`,
+  healthcare: `The Healthcare AI Chatbot is one of Aditya's more impactful projects from an end-user perspective.
 
-  syncs: `### ⚡ InspectFlow Sync & CXBulk
+It's a conversational NLP agent built to handle preliminary patient symptom assessment — essentially automating the first step of triage. It **reduced response times by 40%**, which in a healthcare setting is actually significant.
 
-These are scaling and automation systems developed by Aditya:
-• **InspectFlow Sync**: High-speed automated telemetry pipelines designed to synchronize data pipelines across nodes. [Repository Link](https://github.com/AADITYA104/inspectflow-sync)
-• **CXBulk**: Enterprise high-throughput database automation tool designed to handle bulk updates and high-load transactions. [Repository Link](https://github.com/AADITYA104/CXBulk)
-• **Codexservice**: A scalable API gateway backend node. [Repository Link](https://github.com/AADITYA104/Codexservice)`,
+Built using Python, custom NLP models, and AI agent loops. It routes natural language queries to medical knowledge bases and gives structured preliminary assessments.
 
-  vault: `### 🔑 DigiVault & Shared Deployments
+GitHub: [Healthcare Chatbot](https://github.com/AADITYA104/Health-Care-Chatbot-)`,
 
-Developed in collaboration, these tools address fit administration:
-• **DigiVault**: An encrypted digital credentials locker. [Repository Link](https://github.com/YogeshTundiya/Digivualt)
-• **Gym Pro System**: Fitness center administration software with concentric activity progress rings. [Repository Link](https://github.com/YogeshTundiya/Gym_pro_system)
-• **Lifeconnect**: A fully connected social interface web app. [Repository Link](https://github.com/YogeshTundiya/Lifeconnect)
-• **Gov Portal**: Public administration portal for secure state services. [Repository Link](https://github.com/YogeshTundiya/Gov-porject)`,
-  
-  location: `### 📍 Location & Availability
+  location: `Aditya is based in Gujarat, India. He's worked with teams across different time zones and is flexible with working hours.
 
-• **Current Base**: Gujarat, India.
-• **Timezone Flexibility**: Experienced in collaborating with international teams. Highly adaptable with overlap hours.
-• **Availability**: Open to immediate remote positions, contract-based consultancies, or relocation to major tech hubs.
+He's open to:
+- Remote roles (immediate availability)
+- Contract or freelance engagements
+- Relocation to major tech hubs
 
-Would you like Aditya's phone number or email to coordinate an initial chat?`,
+Best way to discuss: call or WhatsApp at +91-7046387404, or email devmurariaaditya@gmail.com.`,
 
-  fallback: `I am Aditya's AI Representative, specifically trained to assist you with his professional profile, skills, experience, and projects.
+  fallback: `I'm here specifically to help you learn about Aditya Devmurari — his technical background, work history, and projects.
 
-Aditya is a **Full Stack & AI Developer** with 2+ years of experience, specializing in **Next.js**, **Python**, **Applied AI/ML**, and **Web3/Blockchain** (like his decentralized voting system ETH.VOTE).
+He's a Full Stack and AI developer based in Gujarat, India with 2+ years of experience. His main areas are Next.js/React, Python/ML, and Web3/Solidity. His flagship project is ETH.VOTE, a decentralized blockchain voting system.
 
-For out-of-scope inquiries or to schedule a direct interview, please feel free to reach him at **+91-7046387404** or email him at **devmurariaaditya@gmail.com**!
+For anything outside of that — or if you'd like to connect directly — you can reach Aditya at **+91-7046387404** or **devmurariaaditya@gmail.com**.
 
-What details about his projects, technical skills, or work history can I highlight for you?`
+What would you like to know more about?`
 };
 
 function getLocalResponse(query: string): string {
@@ -246,61 +199,48 @@ function getLocalResponse(query: string): string {
   if (q.includes('vote') || q.includes('eth') || q.includes('blockchain') || q.includes('web3') || q.includes('solidity')) {
     return LOCAL_RESPONSES.eth_vote;
   }
-  if (q.includes('threat') || q.includes('anomaly') || q.includes('security') || q.includes('intruder') || q.includes('intrusion')) {
+  if (q.includes('threat') || q.includes('anomaly') || q.includes('security scanner') || q.includes('intrusion')) {
     return LOCAL_RESPONSES.threat;
   }
-  if (q.includes('healthcare') || q.includes('triage') || q.includes('chatbot') || q.includes('patient')) {
+  if (q.includes('healthcare') || q.includes('triage') || q.includes('chatbot') || q.includes('patient') || q.includes('medical')) {
     return LOCAL_RESPONSES.healthcare;
   }
-  if (q.includes('face') || q.includes('mesh') || q.includes('contour') || q.includes('opencv') || q.includes('lift')) {
-    return LOCAL_RESPONSES.facelift;
-  }
-  if (q.includes('fake') || q.includes('news') || q.includes('credibility') || q.includes('article')) {
-    return LOCAL_RESPONSES.fakenews;
-  }
-  if (q.includes('netguard') || q.includes('packet') || q.includes('capture')) {
-    return LOCAL_RESPONSES.netguard;
-  }
-  if (q.includes('inspectflow') || q.includes('sync') || q.includes('cxbulk') || q.includes('codex') || q.includes('api')) {
-    return LOCAL_RESPONSES.syncs;
-  }
-  if (q.includes('vault') || q.includes('digivault') || q.includes('gym') || q.includes('fitness') || q.includes('lifeconnect') || q.includes('gov')) {
-    return LOCAL_RESPONSES.vault;
-  }
-  if (q.includes('hire') || q.includes('why') || q.includes('benefit') || q.includes('strong') || q.includes('reason') || q.includes('value')) {
+  if (q.includes('hire') || q.includes('why') || q.includes('should we') || q.includes('reason') || q.includes('value') || q.includes('strong candidate')) {
     return LOCAL_RESPONSES.hire;
   }
-  if (q.includes('project') || q.includes('build') || q.includes('create') || q.includes('make') || q.includes('github') || q.includes('list') || q.includes('all')) {
+  if (q.includes('project') || q.includes('build') || q.includes('github') || q.includes('list') || q.includes('all') || q.includes('portfolio') || q.includes('deployed')) {
     return LOCAL_RESPONSES.projects;
   }
-  if (q.includes('skill') || q.includes('stack') || q.includes('framework') || q.includes('language') || q.includes('database') || q.includes('tech')) {
+  if (q.includes('skill') || q.includes('stack') || q.includes('framework') || q.includes('language') || q.includes('database') || q.includes('tech') || q.includes('know')) {
     return LOCAL_RESPONSES.skills;
   }
-  if (q.includes('experience') || q.includes('work') || q.includes('job') || q.includes('intern') || q.includes('history') || q.includes('resume')) {
+  if (q.includes('experience') || q.includes('work') || q.includes('job') || q.includes('intern') || q.includes('history') || q.includes('resume') || q.includes('background')) {
     return LOCAL_RESPONSES.experience;
   }
-  if (q.includes('contact') || q.includes('phone') || q.includes('email') || q.includes('call') || q.includes('reach') || q.includes('number') || q.includes('chat') || q.includes('linkedin')) {
+  if (q.includes('contact') || q.includes('phone') || q.includes('email') || q.includes('call') || q.includes('reach') || q.includes('number') || q.includes('linkedin')) {
     return LOCAL_RESPONSES.contact;
   }
-  if (q.includes('location') || q.includes('where') || q.includes('remote') || q.includes('live') || q.includes('relocate')) {
+  if (q.includes('location') || q.includes('where') || q.includes('remote') || q.includes('relocate') || q.includes('india')) {
     return LOCAL_RESPONSES.location;
   }
   return LOCAL_RESPONSES.fallback;
 }
 
 function buildSystemPrompt(): string {
-  return `You are Aditya Devmurari's professional AI representative. You speak exclusively on his behalf using the facts below.
+  return `You are speaking on behalf of Aditya Devmurari — a software developer based in Gujarat, India. You represent him professionally to recruiters, founders, and potential collaborators.
 
-AUDIENCE CONTEXT: Recruiter, founder, or potential collaborator evaluating Aditya.
-TONE: Confident, formal, highly persuasive, metric-driven, professional.
+Your responses must sound like a real person who knows Aditya well, not like a formal AI assistant. Write naturally. Use plain language. Avoid bullet walls unless listing something specific. Don't start sentences with "Certainly!" or "Absolutely!" or "Great question!".
+
+TONE: Confident, direct, conversational. Think: a sharp colleague who knows the candidate inside out and is vouching for them.
 
 RULES:
-1. Speak on Aditya's behalf: "Aditya built...", "One of Aditya's key achievements is..."
-2. Always mention at least one precise metric from his portfolio facts (e.g. 30% faster processing, 95% ML accuracy, 40% patient triage speedup, 20% manual entry reduction).
-3. Keep responses clean, professional, and well-structured using markdown headers and bullet points where helpful.
-4. If asked unrelated questions, guide them to contact Aditya at +91-7046387404 or devmurariaaditya@gmail.com.
-5. Answer in English only to maintain a professional global corporate standard.
-6. Provide links to his specific repositories (like ETH.VOTE, AI Threat Detection, Gym Pro System, etc.) as listed in the fact sheet below.
+1. Speak about Aditya in third person: "Aditya built...", "He shipped...", "His strongest project is..."
+2. Always include at least one concrete metric when relevant (30% processing boost, 95% ML accuracy, 40% triage speedup, 20% data entry reduction, 92% anomaly detection accuracy).
+3. Use markdown lightly — headers only when listing multiple things. Avoid over-formatting.
+4. If asked something unrelated to Aditya's professional profile, redirect with his contact info: +91-7046387404 or devmurariaaditya@gmail.com.
+5. Reply in English only.
+6. When mentioning projects, include the relevant GitHub link from the facts below.
+7. Keep answers concise but complete — don't pad with filler sentences.
 
 ${ADITYA_FACTS_TEXT}`;
 }
@@ -310,20 +250,20 @@ export async function POST(req: NextRequest) {
     const { messages } = await req.json();
 
     const groqApiKey = process.env.GROQ_API_KEY;
-    
-    // Seamless smart local fallback if the API key is not configured on Vercel yet
+
+    // Smart local fallback — fully functional without the API key
     if (!groqApiKey) {
       const userMessage = messages[messages.length - 1]?.content || '';
       const reply = getLocalResponse(userMessage);
 
-      // Simulate a small stream
       const encoder = new TextEncoder();
       const stream = new ReadableStream({
         async start(controller) {
-          const chunks = reply.split(' ');
-          for (const chunk of chunks) {
-            controller.enqueue(encoder.encode(chunk + ' '));
-            await new Promise((resolve) => setTimeout(resolve, 30));
+          // Stream word by word for a natural feel
+          const words = reply.split(' ');
+          for (const word of words) {
+            controller.enqueue(encoder.encode(word + ' '));
+            await new Promise((resolve) => setTimeout(resolve, 18));
           }
           controller.close();
         }
@@ -352,8 +292,8 @@ export async function POST(req: NextRequest) {
           { role: 'system', content: systemPrompt },
           ...messages,
         ],
-        max_tokens: 600,
-        temperature: 0.7,
+        max_tokens: 500,
+        temperature: 0.65,
         stream: true,
       }),
     });
@@ -398,13 +338,13 @@ export async function POST(req: NextRequest) {
                     controller.enqueue(encoder.encode(token));
                   }
                 } catch {
-                  // Ignore parsing errors for partial stream packets
+                  // Ignore partial stream parsing errors
                 }
               }
             }
           }
         } catch {
-          // fallback inline
+          // Silent stream fallback
         } finally {
           controller.close();
         }
@@ -419,7 +359,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error: unknown) {
-    const errMsg = error instanceof Error ? error.message : "Internal Server Error";
+    const errMsg = error instanceof Error ? error.message : 'Internal Server Error';
     return new Response(`Error: ${errMsg}`, { status: 500 });
   }
 }

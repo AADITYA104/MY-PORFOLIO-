@@ -931,6 +931,17 @@ const ProjectCard = ({ p, i }: { p: typeof ProfileData.projects[0]; i: number })
 export default function Home() {
   const [booted, setBooted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Skip boot sequence if already seen in this session
+  useEffect(() => {
+    const seen = sessionStorage.getItem('portfolio_booted');
+    if (seen) setBooted(true);
+  }, []);
+
+  const handleBootComplete = () => {
+    sessionStorage.setItem('portfolio_booted', '1');
+    setBooted(true);
+  };
   
   // Cursor Refs
   const cursorDotRef = useRef<HTMLDivElement>(null);
@@ -1113,10 +1124,19 @@ export default function Home() {
     return () => ctx.revert(); // Cleanup GSAP context on unmount
   }, [booted]);
 
-  if (!booted) return <BootSequence onComplete={() => setBooted(true)} />;
+  if (!booted) return <BootSequence onComplete={handleBootComplete} />;
 
   return (
     <div ref={containerRef} className="bg-[#000] text-white font-sans overflow-x-hidden selection:bg-cyan-500 selection:text-black cursor-none">
+
+      {/* Floating Back to AI Chat button */}
+      <a
+        href="/"
+        className="fixed bottom-6 right-6 z-[9998] flex items-center gap-2 px-4 py-3 bg-black/80 border border-cyan-500/30 hover:border-cyan-500/80 text-cyan-400 hover:text-white text-xs font-mono font-bold uppercase tracking-widest backdrop-blur-md rounded-xl transition-all duration-300 hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] hover:bg-black/90 group cursor-pointer"
+      >
+        <svg className="w-3.5 h-3.5 fill-current rotate-180 transition-transform group-hover:-translate-x-0.5" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        AI Chat
+      </a>
       
       {/* 2. ADVANCED HUD CURSOR */}
       <div className="fixed top-0 left-0 pointer-events-none z-[9999] mix-blend-difference hidden md:block">

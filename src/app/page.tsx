@@ -126,16 +126,18 @@ export default function AIAgentPage() {
   return (
     <div className="min-h-[100vh] bg-[#030712] text-[#f3f4f6] flex flex-col relative overflow-hidden font-sans selection:bg-[#10b981]/25 selection:text-[#10b981]">
       {/* Premium Glassmorphic Backdrop Grid & Glow */}
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(255,255,255,0.007)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.007)_1px,transparent_1px)] bg-[size:30px_30px]" />
-      <div className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-[#10b981]/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[20%] w-[500px] h-[500px] rounded-full bg-[#3b82f6]/5 blur-[100px] pointer-events-none" />
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(rgba(255,255,255,0.007)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.007)_1px,transparent_1px)] bg-[size:30px_30px] bg-grid-drift" />
+      <div className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-[#10b981]/5 blur-[120px] pointer-events-none orb-float-1" />
+      <div className="absolute bottom-[-10%] right-[20%] w-[500px] h-[500px] rounded-full bg-[#3b82f6]/5 blur-[100px] pointer-events-none orb-float-2" />
 
       {/* Header */}
       <header className="w-full max-w-4xl mx-auto px-6 py-5 flex items-center justify-between border-b border-white/[0.04] backdrop-blur-md relative z-10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#10b981]/20 to-[#3b82f6]/20 border border-[#10b981]/30 flex items-center justify-center relative shadow-[0_8px_30px_rgb(16,185,129,0.08)]">
-            <span className="text-[#10b981] font-bold text-sm">AD</span>
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#10b981] border-2 border-[#030712] rounded-full animate-pulse" />
+            <div className="live-node-ring" />
+            <div className="live-node-ring" />
+            <span className="text-[#10b981] font-bold text-sm z-10">AD</span>
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#10b981] border-2 border-[#030712] rounded-full z-20 animate-pulse" />
           </div>
           <div>
             <h1 className="text-sm font-bold tracking-tight text-white">Aditya Devmurari</h1>
@@ -149,7 +151,7 @@ export default function AIAgentPage() {
 
         <a
           href="/portfolio"
-          className="text-xs text-gray-400 hover:text-white border border-white/5 hover:border-white/20 bg-white/[0.02] rounded-xl px-4 py-2 transition-all duration-300 backdrop-blur-sm cursor-pointer"
+          className="text-xs text-gray-400 hover:text-white border border-white/5 hover:border-white/20 bg-white/[0.02] rounded-xl px-4 py-2 transition-all duration-300 backdrop-blur-sm cursor-pointer hover:shadow-[0_0_15px_rgba(255,255,255,0.05)]"
         >
           Portfolio ↗
         </a>
@@ -176,13 +178,13 @@ export default function AIAgentPage() {
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-[messageSlide_0.3s_ease-out]`}
+                className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'} msg-spring-entrance`}
               >
                 <div
                   className={`max-w-[85%] rounded-2xl px-5 py-3.5 text-sm leading-relaxed border transition-all duration-300 ${
                     msg.role === 'user'
                       ? 'bg-gradient-to-r from-[#10b981] to-[#059669] text-white border-transparent rounded-tr-none shadow-[0_8px_30px_rgba(16,185,129,0.12)]'
-                      : 'bg-white/[0.02] border-white/[0.04] text-[#d1d5db] rounded-tl-none backdrop-blur-md'
+                      : 'bg-white/[0.02] border-white/[0.04] text-[#d1d5db] rounded-tl-none backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
                   }`}
                 >
                   <p className="whitespace-pre-wrap font-medium">{msg.content}</p>
@@ -192,8 +194,8 @@ export default function AIAgentPage() {
 
             {/* Live Token Streaming Output */}
             {streamingContent && (
-              <div className="flex w-full justify-start animate-pulse">
-                <div className="max-w-[85%] rounded-2xl rounded-tl-none px-5 py-3.5 text-sm leading-relaxed bg-white/[0.02] border border-white/[0.04] text-[#d1d5db] backdrop-blur-md relative">
+              <div className="flex w-full justify-start">
+                <div className="max-w-[85%] rounded-2xl rounded-tl-none px-5 py-3.5 text-sm leading-relaxed bg-white/[0.02] border border-white/[0.04] text-[#d1d5db] backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.2)] relative">
                   <p className="whitespace-pre-wrap font-medium">{streamingContent}</p>
                   <span className="inline-block w-1.5 h-4 bg-[#10b981] ml-1 animate-ping" />
                 </div>
@@ -225,7 +227,8 @@ export default function AIAgentPage() {
                 key={idx}
                 onClick={() => handleSend(sug)}
                 disabled={loading}
-                className="shrink-0 text-xs px-4 py-2.5 rounded-xl border border-white/[0.04] hover:border-[#10b981]/30 bg-white/[0.01] hover:bg-[#10b981]/5 text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 active:scale-95 cursor-pointer backdrop-blur-sm"
+                style={{ animationDelay: `${idx * 0.08}s` }}
+                className="shrink-0 text-xs px-4 py-2.5 rounded-xl border border-white/[0.04] hover:border-[#10b981]/30 bg-white/[0.01] hover:bg-[#10b981]/5 text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 active:scale-95 cursor-pointer backdrop-blur-sm animate-[chipEntrance_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
               >
                 {sug}
               </button>
@@ -235,7 +238,7 @@ export default function AIAgentPage() {
 
         {/* Composer */}
         <section className="flex-shrink-0 space-y-4">
-          <div className="relative border border-white/[0.06] bg-white/[0.02] backdrop-blur-md rounded-2xl p-2 focus-within:border-[#10b981]/40 transition-colors duration-300 flex items-end">
+          <div className="relative border border-white/[0.06] bg-white/[0.02] backdrop-blur-md rounded-2xl p-2 focus-within:border-[#10b981]/40 focus-within:shadow-[0_0_25px_rgba(16,185,129,0.1)] transition-all duration-300 flex items-end">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -260,7 +263,7 @@ export default function AIAgentPage() {
           <footer className="w-full flex justify-center pt-2">
             <a
               href="/portfolio"
-              className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-[#10b981]/5 to-[#3b82f6]/5 hover:from-[#10b981]/10 hover:to-[#3b82f6]/10 border border-[#10b981]/20 hover:border-[#10b981]/50 rounded-2xl text-[#10b981] font-bold text-xs tracking-widest uppercase transition-all duration-300 hover:shadow-[0_0_24px_rgba(16,185,129,0.08)] text-center cursor-pointer"
+              className="flex items-center justify-center gap-2 w-full py-4 bg-gradient-to-r from-[#10b981]/5 to-[#3b82f6]/5 hover:from-[#10b981]/10 hover:to-[#3b82f6]/10 border border-[#10b981]/20 hover:border-[#10b981]/50 rounded-2xl text-[#10b981] font-bold text-xs tracking-widest uppercase transition-all duration-300 hover:shadow-[0_0_24px_rgba(16,185,129,0.08)] text-center cursor-pointer hover:scale-[1.01]"
             >
               ⬡ View Aditya&apos;s Full Portfolio →
             </a>
@@ -277,12 +280,66 @@ export default function AIAgentPage() {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
-        @keyframes fadeIn {
+        
+        /* Concentric Live Node Double Pulse */
+        .live-node-ring {
+          position: absolute;
+          inset: -1px;
+          border-radius: inherit;
+          border: 1px solid #10b981;
+          opacity: 0;
+          pointer-events: none;
+          animation: doublePulse 3s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+        }
+        .live-node-ring:nth-child(2) {
+          animation-delay: 1.5s;
+        }
+        @keyframes doublePulse {
+          0% { transform: scale(1); opacity: 0.8; }
+          100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Subtle Drift Background Grid */
+        .bg-grid-drift {
+          animation: gridDrift 140s linear infinite;
+        }
+        @keyframes gridDrift {
+          from { background-position: 0 0; }
+          to { background-position: 600px 600px; }
+        }
+
+        /* Floating Glow Orbs Parallax */
+        .orb-float-1 {
+          animation: orbFloat1 25s ease-in-out infinite alternate;
+        }
+        @keyframes orbFloat1 {
+          0% { transform: translate(0, 0) scale(1); }
+          100% { transform: translate(60px, 30px) scale(1.15); }
+        }
+        .orb-float-2 {
+          animation: orbFloat2 30s ease-in-out infinite alternate;
+        }
+        @keyframes orbFloat2 {
+          0% { transform: translate(0, 0) scale(1); }
+          100% { transform: translate(-50px, -40px) scale(0.85); }
+        }
+
+        /* Smooth Fluid Spring Entrance Bubble */
+        .msg-spring-entrance {
+          animation: springEntrance 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.15) both;
+        }
+        @keyframes springEntrance {
+          from { opacity: 0; transform: scale(0.97) translateY(12px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes chipEntrance {
           from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes messageSlide {
-          from { opacity: 0; transform: translateY(12px); }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>

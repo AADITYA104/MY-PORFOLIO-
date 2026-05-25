@@ -49,7 +49,8 @@ export default function AIAssistantPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Streaming failed');
+        const errorText = await response.text();
+        throw new Error(errorText || 'Streaming failed');
       }
 
       if (!response.body) {
@@ -71,10 +72,16 @@ export default function AIAssistantPage() {
 
       setMessages(prev => [...prev, { role: 'assistant', content: accumulatedText }]);
       setStreamingContent('');
-    } catch (error) {
+    } catch (error: any) {
+      const errMsg = error?.message || "Connection failed";
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: "Something went wrong connection. Please try again!" },
+        { 
+          role: 'assistant', 
+          content: errMsg.includes("GROQ_API_KEY is not configured")
+            ? "⚠️ GROQ_API_KEY is missing on Vercel!\n\nPlease add the GROQ_API_KEY environment variable in your Vercel Dashboard under Settings -> Environment Variables, and click Redeploy. Once done, I will be 100% active and ready to chat!"
+            : `Connection issue: ${errMsg}. Please verify your key and network connection.`
+        },
       ]);
     } finally {
       setLoading(false);

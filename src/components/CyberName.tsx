@@ -11,9 +11,9 @@ interface LetterProps {
   globalIndex: number;
 }
 
-const CyberLetter: React.FC<LetterProps> = ({ char, wordIndex, letterIndex, globalIndex }) => {
-  const [displayChar, setDisplayChar] = useState("");
-  const [resolved, setResolved] = useState(false);
+const CyberLetter: React.FC<LetterProps> = ({ char, globalIndex }) => {
+  const [displayChar, setDisplayChar] = useState(char === " " ? " " : "");
+  const [resolved, setResolved] = useState(char === " ");
   const containerRef = useRef<HTMLDivElement>(null);
   const mainTextRef = useRef<HTMLSpanElement>(null);
   const cyanTextRef = useRef<HTMLSpanElement>(null);
@@ -21,11 +21,7 @@ const CyberLetter: React.FC<LetterProps> = ({ char, wordIndex, letterIndex, glob
 
   // Decryption effect on load
   useEffect(() => {
-    if (char === " ") {
-      setDisplayChar(" ");
-      setResolved(true);
-      return;
-    }
+    if (char === " ") return;
 
     const startDelay = globalIndex * 60; // Stagger start for each letter
     const duration = 800; // Duration of cycling

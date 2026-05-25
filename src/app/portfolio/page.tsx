@@ -109,6 +109,22 @@ const ProfileData = {
   ]
 };
 
+const MOCK_LOGS = [
+    "SYSTEM_OS V.4.0.2 SECURE BOOT INITIATED",
+    "LOADING CORE ALGORITHMS... OK",
+    "ESTABLISHING SECURE SSH UPLINK...",
+    "MOUNTING HOST NODE: AADITYA104/MY-PORFOLIO-",
+    "COMPILING NEXT.js APP ROUTER BUNDLES...",
+    "CONNECTING TO AI NEURAL NETWORKS... VERIFIED",
+    "ANALYZING SECURITY PROTOCOLS... STABLE",
+    "PARSING FULL STACK R&D DEPLOYMENTS...",
+    "SYNCHRONIZING REPOSITORIES...",
+    "OPTIMIZING RENDERING METRICS... SUCCESS",
+    "AUTHORIZING ADITYA DEVMURARI DEVELOPER ACCESS...",
+    "GRANTING SYSTEM DRIVER INJECTION...",
+    "DEPLOYING FRONTEND INTERFACE HUD...",
+];
+
 // 1. DUAL-PANEL CYBERNETIC OS CORE DIAGNOSTICS HUD LOADER
 const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
     const [progress, setProgress] = useState(0);
@@ -119,22 +135,6 @@ const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
     const shutterTopRef = useRef<HTMLDivElement>(null);
     const shutterBottomRef = useRef<HTMLDivElement>(null);
     const coreRef = useRef<HTMLDivElement>(null);
-
-    const mockLogs = [
-        "SYSTEM_OS V.4.0.2 SECURE BOOT INITIATED",
-        "LOADING CORE ALGORITHMS... OK",
-        "ESTABLISHING SECURE SSH UPLINK...",
-        "MOUNTING HOST NODE: AADITYA104/MY-PORFOLIO-",
-        "COMPILING NEXT.js APP ROUTER BUNDLES...",
-        "CONNECTING TO AI NEURAL NETWORKS... VERIFIED",
-        "ANALYZING SECURITY PROTOCOLS... STABLE",
-        "PARSING FULL STACK R&D DEPLOYMENTS...",
-        "SYNCHRONIZING REPOSITORIES...",
-        "OPTIMIZING RENDERING METRICS... SUCCESS",
-        "AUTHORIZING ADITYA DEVMURARI DEVELOPER ACCESS...",
-        "GRANTING SYSTEM DRIVER INJECTION...",
-        "DEPLOYING FRONTEND INTERFACE HUD...",
-    ];
 
     useEffect(() => {
         const duration = 2000;
@@ -154,8 +154,8 @@ const BootSequence = ({ onComplete }: { onComplete: () => void }) => {
             else if (currentProgress < 98) setStatusText("DECRYPTING INTERFACE STACK...");
             else setStatusText("ACCESS GRANTED. BOOT COMPLETE.");
 
-            const logIdx = Math.floor((currentProgress / 100) * mockLogs.length);
-            setConsoleLogs(mockLogs.slice(0, logIdx + 1));
+            const logIdx = Math.floor((currentProgress / 100) * MOCK_LOGS.length);
+            setConsoleLogs(MOCK_LOGS.slice(0, logIdx + 1));
 
             if (currentProgress >= 100) {
                 clearInterval(interval);
@@ -601,7 +601,7 @@ const ProjectBg = ({ index }: { index: number }) => {
           <div className="absolute inset-0 p-6 flex flex-col justify-center opacity-40 group-hover:opacity-85 transition-opacity duration-500 font-mono text-[10px] text-lime-400 space-y-1">
             <div className="text-[8px] text-lime-500/50"># API_GATEWAY_CONSOLE</div>
             <div className="flex items-center gap-1"><span>&gt; GET /api/v1/services</span><span className="w-1.5 h-3.5 bg-lime-400 animate-pulse" /></div>
-            <div className="text-lime-300">{"{"} status: "200 OK", latency: "14ms" {"}"}</div>
+            <div className="text-lime-300">{"{ status: \"200 OK\", latency: \"14ms\" }"}</div>
             <div className="text-lime-500/70">&gt; DATABASE CONNECTED [POOL_OK]</div>
           </div>
         );

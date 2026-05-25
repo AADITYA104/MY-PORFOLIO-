@@ -288,7 +288,7 @@ function getLocalResponse(query: string): string {
   return LOCAL_RESPONSES.fallback;
 }
 
-function buildSystemPrompt(audience: string, mode: string, depth: string): string {
+function buildSystemPrompt(): string {
   return `You are Aditya Devmurari's professional AI representative. You speak exclusively on his behalf using the facts below.
 
 AUDIENCE CONTEXT: Recruiter, founder, or potential collaborator evaluating Aditya.
@@ -307,7 +307,7 @@ ${ADITYA_FACTS_TEXT}`;
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, audience = 'recruiter', mode = 'balanced', depth = 'detailed' } = await req.json();
+    const { messages } = await req.json();
 
     const groqApiKey = process.env.GROQ_API_KEY;
     
@@ -338,7 +338,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const systemPrompt = buildSystemPrompt(audience, mode, depth);
+    const systemPrompt = buildSystemPrompt();
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -397,13 +397,13 @@ export async function POST(req: NextRequest) {
                   if (token) {
                     controller.enqueue(encoder.encode(token));
                   }
-                } catch (e) {
+                } catch {
                   // Ignore parsing errors for partial stream packets
                 }
               }
             }
           }
-        } catch (err) {
+        } catch {
           // fallback inline
         } finally {
           controller.close();
@@ -418,7 +418,8 @@ export async function POST(req: NextRequest) {
         'Connection': 'keep-alive',
       },
     });
-  } catch (error: any) {
-    return new Response(`Error: ${error.message || "Internal Server Error"}`, { status: 500 });
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : "Internal Server Error";
+    return new Response(`Error: ${errMsg}`, { status: 500 });
   }
 }

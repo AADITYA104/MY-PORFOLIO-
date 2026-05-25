@@ -23,8 +23,8 @@ const ProfileData = {
   },
   skills: {
     languages: ["Python", "JavaScript", "HTML5", "CSS3"],
-    frameworks: ["React.js", "Next.js", "Node.js", "Tailwind CSS"],
-    ai: ["Machine Learning", "NLP", "AI Agents", "Scikit-learn", "Data Analysis"],
+    frameworks: ["React.js", "Next.js", "Node.js", "Tailwind CSS", "FastAPI"],
+    "AI/ML & Web3": ["Machine Learning", "NLP", "AI Agents", "Solidity", "Smart Contracts", "Scikit-learn"],
     tools: ["MySQL", "PostgreSQL", "MongoDB", "Firebase", "Git", "GitHub"]
   },
   stats: [
@@ -36,6 +36,16 @@ const ProfileData = {
     { label: "Cross-Browser", value: "100%" }
   ],
   experience: [
+    {
+      role: "Full Stack Developer Intern",
+      company: "Aksharraj Infotech",
+      period: "Feb 2026 – Apr 2026",
+      bullets: [
+        "Worked on end-to-end development of ETH.VOTE, bridging traditional web systems with decentralised blockchain logic.",
+        "Developed secure blockchain-based voting features and implemented cryptography standards to protect user data.",
+        "Collaborated in daily agile sprints to fix bugs and improve overall application performance."
+      ]
+    },
     {
       role: "R&D Engineer",
       company: "Gyanmanjari Innovative University (GMIU)",
@@ -70,7 +80,7 @@ const ProfileData = {
     {
       degree: "Bachelor of Technology in Information Technology",
       institution: "Gyanmanjari Innovative University (GMIU)",
-      status: "Pursuing",
+      status: "Completed",
       location: "Gujarat, India"
     },
     {

@@ -64,21 +64,31 @@ export default function AIAgentPage() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Connection failed');
-      }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
       let acc = '';
 
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          acc += decoder.decode(value);
-          setStreamingContent(acc);
+      if (response.ok && response.body) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            acc += decoder.decode(value);
+            setStreamingContent(acc);
+          }
+        } catch (streamErr) {
+          console.error("Stream interrupted, attempting text fallback", streamErr);
         }
+      }
+
+      // Hyper-resilience: If streaming didn't output anything, try plain text
+      if (!acc) {
+        acc = await response.text();
+      }
+
+      // If we still have no reply, trigger local graceful response
+      if (!acc || acc.startsWith('Error:')) {
+        acc = "I am Aditya's AI Representative. I'd love to help answer your questions about his experience! Feel free to reach him directly via call or WhatsApp at +91-7046387404 or email at devmurariaaditya@gmail.com. What details can I share with you about his projects?";
       }
 
       setMessages((prev) => [
@@ -86,16 +96,18 @@ export default function AIAgentPage() {
         { role: 'assistant', content: acc }
       ]);
       setStreamingContent('');
-    } catch {
+    } catch (err) {
+      console.error("Fetch error caught successfully:", err);
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: "You can reach Aditya directly via call/WhatsApp at +91-7046387404 or email devmurariaaditya@gmail.com. He is highly responsive and ready to connect!"
+          content: "I'm currently running in local offline mode due to a connection issue. You can reach Aditya directly via call/WhatsApp at +91-7046387404 or email devmurariaaditya@gmail.com. He is highly responsive and ready to connect!"
         }
       ]);
     } finally {
       setLoading(false);
+      setStreamingContent('');
     }
   };
 

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aditya AI Agent</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="noise"></div>
+    <main class="layout">
+      <section class="hero panel">
+        <div class="hero-copy">
+          <p class="eyebrow">Aditya Devmurari / AI Representative</p>
+          <h1>Advanced portfolio intelligence with real reasoning depth.</h1>
+          <p id="summary" class="summary">
+            This agent is built to explain Aditya's strengths with clarity, depth, proof, and role-aware positioning.
+          </p>
+          <div id="proof-grid" class="proof-grid"></div>
+        </div>
+
+        <aside class="hero-aside">
+          <div class="status-card">
+            <div class="status-row">
+              <span class="status-label">Engine</span>
+              <span id="engine-badge" class="status-badge">Checking...</span>
+            </div>
+            <p class="status-title">Aditya AI Agent</p>
+            <p id="status-copy" class="status-copy">
+              Built to answer recruiters, founders, clients, and collaborators with evidence-backed positioning.
+            </p>
+          </div>
+
+          <div class="contact-card">
+            <p class="card-label">Public Links</p>
+            <div id="contact-links" class="link-list"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel sidebar">
+          <div class="controls-block">
+            <div class="sidebar-head">
+              <p class="card-label">Response Controls</p>
+              <button id="clear-button" type="button" class="ghost-button">Clear Chat</button>
+            </div>
+
+            <label for="audience">Audience</label>
+            <select id="audience">
+              <option value="recruiter">Recruiter</option>
+              <option value="founder">Founder</option>
+              <option value="client">Client</option>
+              <option value="collaborator">Collaborator</option>
+              <option value="general">General</option>
+            </select>
+
+            <label for="mode">Style</label>
+            <select id="mode">
+              <option value="balanced">Balanced</option>
+              <option value="persuasive">Persuasive</option>
+              <option value="technical">Technical</option>
+              <option value="strategic">Strategic</option>
+            </select>
+
+            <label for="depth">Depth</label>
+            <select id="depth">
+              <option value="detailed">Detailed</option>
+              <option value="deep">Deep Dive</option>
+              <option value="concise">Concise</option>
+            </select>
+
+            <label for="language">Language</label>
+            <select id="language">
+              <option value="auto">Auto (English first)</option>
+              <option value="english">English</option>
+              <option value="mixed">Gujarati + English</option>
+              <option value="gujarati">Gujarati</option>
+            </select>
+
+            <label for="answer-format">Answer Format</label>
+            <select id="answer-format">
+              <option value="analysis">Professional Analysis</option>
+              <option value="pitch">Persuasive Pitch</option>
+              <option value="executive">Executive Brief</option>
+            </select>
+
+            <label class="toggle">
+              <input id="psychology-mode" type="checkbox" checked />
+              <span>Use psychology-based persuasion</span>
+            </label>
+
+            <label class="toggle">
+              <input id="objections-mode" type="checkbox" checked />
+              <span>Address hidden objections</span>
+            </label>
+
+            <label class="toggle">
+              <input id="research-mode" type="checkbox" />
+              <span>Use web research when needed</span>
+            </label>
+          </div>
+
+          <div class="value-block">
+            <p class="card-label">Why Aditya Stands Out</p>
+            <div id="value-points" class="value-points"></div>
+          </div>
+
+          <div class="matrix-block">
+            <p class="card-label">Role Fit Matrix</p>
+            <div id="role-fit-grid" class="role-fit-grid"></div>
+          </div>
+        </aside>
+
+        <section class="panel chat-panel">
+          <div class="chat-head">
+            <div>
+              <p class="card-label">Ask Anything</p>
+              <h2>Role fit, project depth, value proposition, collaboration style, technical proof.</h2>
+            </div>
+            <div id="conversation-meta" class="conversation-meta">
+              <span class="meta-pill">Ready</span>
+            </div>
+          </div>
+
+          <div id="messages" class="messages">
+            <article class="message assistant">
+              <div class="message-meta">System intro</div>
+              <p>
+                Hi, I'm Aditya's AI agent. Ask me why he is strong for a role, how he works, what he has built,
+                or why connecting with him can create real value.
+              </p>
+            </article>
+          </div>
+
+          <div id="prompt-strip" class="prompt-strip"></div>
+
+          <form id="chat-form" class="composer">
+            <textarea
+              id="prompt"
+              name="prompt"
+              rows="4"
+              placeholder="Example: Why would Aditya be a strong hire for an AI product team?"
+              required
+            ></textarea>
+            <div class="composer-row">
+              <p class="hint">
+                Tip: ask from a recruiter, founder, client, or collaborator angle and choose the depth you want.
+              </p>
+              <button id="send-button" type="submit">Send</button>
+            </div>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <template id="message-template">
+      <article class="message">
+        <div class="message-meta"></div>
+        <p></p>
+      </article>
+    </template>
+
+    <template id="prompt-template">
+      <button class="prompt-chip" type="button"></button>
+    </template>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

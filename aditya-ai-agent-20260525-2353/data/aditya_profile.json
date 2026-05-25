@@ -1,0 +1,335 @@
+{
+  "identity": {
+    "name": "Aditya Devmurari",
+    "headline": "Full Stack and AI Architect",
+    "resume_title": "Software Engineer | Full Stack and AI Developer",
+    "location": "Gujarat, India",
+    "experience_summary": "2+ years in research and development, AI/ML, and full stack engineering."
+  },
+  "contact": {
+    "phone": "+91-7046387404",
+    "email": "devmurariaaditya@gmail.com",
+    "linkedin": "https://linkedin.com/in/devmurari-aditya",
+    "github": "https://github.com/AADITYA104",
+    "portfolio": "https://adityadevmurari.vercel.app"
+  },
+  "professional_summary": "Results-driven software developer with 2+ years of experience in research and development and full stack engineering. Experienced in architecting scalable web applications, high-accuracy AI and ML models, and intelligent automation systems using Python, Next.js, and AI agents.",
+  "core_strengths": [
+    "Combines research depth with shipping-focused software execution.",
+    "Moves across AI, automation, web platforms, and emerging technologies without losing product focus.",
+    "Comfortable owning both architecture decisions and implementation details.",
+    "Can translate complex technical systems into business-facing outcomes."
+  ],
+  "technical_skills": {
+    "languages": [
+      "Python",
+      "JavaScript",
+      "HTML5",
+      "CSS3"
+    ],
+    "frameworks": [
+      "React.js",
+      "Next.js",
+      "Node.js",
+      "Tailwind CSS",
+      "FastAPI"
+    ],
+    "ai_ml_web3": [
+      "Machine Learning",
+      "NLP",
+      "AI Agents",
+      "Solidity",
+      "Smart Contracts",
+      "Scikit-learn"
+    ],
+    "data_tools": [
+      "MySQL",
+      "PostgreSQL",
+      "MongoDB",
+      "Firebase",
+      "Git",
+      "GitHub"
+    ]
+  },
+  "experience": [
+    {
+      "title": "Full Stack Developer Intern",
+      "company": "Aksharraj Infotech",
+      "period": "Feb 2026 - Apr 2026",
+      "location": "Gujarat, India",
+      "highlights": [
+        "Worked end-to-end on ETH.VOTE, bridging traditional web systems with decentralized blockchain logic.",
+        "Developed secure blockchain voting features and applied cryptography standards to protect user data.",
+        "Collaborated in agile sprints to fix bugs and improve application performance."
+      ]
+    },
+    {
+      "title": "Research and Development Engineer",
+      "company": "Gyanmanjari Innovative University (GMIU)",
+      "period": "Feb 2024 - Jan 2026",
+      "location": "Gujarat, India",
+      "highlights": [
+        "Spearheaded R and D for 4+ innovation projects focused on software scalability and architecture.",
+        "Architected a prototype system that improved data processing speeds by 30%.",
+        "Mentored 10+ junior students through the full software development life cycle."
+      ]
+    },
+    {
+      "title": "Junior AI/ML Developer",
+      "company": "Mexgen Technologies Pvt. Ltd.",
+      "period": "Jul 2025 - Jan 2026",
+      "location": "Gujarat, India",
+      "highlights": [
+        "Engineered AI and ML models for business workflows, reducing manual data entry by 20%.",
+        "Optimized Python data pipelines and reached 95% predictive modeling accuracy.",
+        "Integrated intelligent AI agents into production platforms to improve engagement."
+      ]
+    },
+    {
+      "title": "Front End Developer",
+      "company": "IT Hub",
+      "period": "Nov 2024 - Dec 2024",
+      "location": "Gujarat, India",
+      "highlights": [
+        "Developed responsive interfaces with modern JavaScript frameworks.",
+        "Achieved 100% cross-browser compatibility for delivered interfaces.",
+        "Reduced page load times by around 15% through front-end optimization."
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "ETH.VOTE",
+      "tagline": "Blockchain voting DApp",
+      "stack": [
+        "Solidity",
+        "Web3",
+        "FastAPI",
+        "React",
+        "Next.js"
+      ],
+      "highlights": [
+        "Built a decentralized voting platform designed for transparency and data integrity.",
+        "Implemented Solidity smart contracts with EIP-712 structured signing.",
+        "Reduced the risk of vote tampering and Sybil attacks through secure signing flows."
+      ],
+      "business_value": [
+        "Shows he can work across frontend, backend, and protocol layers.",
+        "Demonstrates security awareness instead of only UI-level execution.",
+        "Signals that he can ship modern systems where trust and integrity matter."
+      ]
+    },
+    {
+      "name": "AI-Driven Threat Detection System",
+      "tagline": "Security-focused machine learning system",
+      "stack": [
+        "Python",
+        "Scikit-learn",
+        "Machine Learning"
+      ],
+      "highlights": [
+        "Designed an intrusion detection system with 92% anomaly detection accuracy.",
+        "Analyzed large-scale network traffic data to predict and mitigate cyber threats."
+      ],
+      "business_value": [
+        "Shows he can work with large datasets and applied ML workflows.",
+        "Demonstrates practical security thinking and measurable model performance."
+      ]
+    },
+    {
+      "name": "Healthcare AI Conversational Agent",
+      "tagline": "NLP-powered patient triage assistant",
+      "stack": [
+        "Python",
+        "NLP",
+        "AI Agents"
+      ],
+      "highlights": [
+        "Built a conversational agent to triage patient symptoms.",
+        "Reduced initial response time by 40% using NLP-driven workflows."
+      ],
+      "business_value": [
+        "Shows he can build user-facing AI, not just back-office models.",
+        "Demonstrates the ability to connect AI capability to real operational gains."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "Gyanmanjari Innovative University (GMIU)",
+      "program": "Bachelor of Technology in Information Technology",
+      "status": "Completed",
+      "location": "Gujarat, India"
+    },
+    {
+      "institution": "Gyanmanjari Institute of Technology (GMIT)",
+      "program": "Diploma in Computer Engineering",
+      "grade": "CGPA: 7.84",
+      "location": "Gujarat, India"
+    }
+  ],
+  "positioning": {
+    "best_fit_roles": [
+      "Full Stack Developer",
+      "AI Engineer",
+      "Applied ML Engineer",
+      "Automation Engineer",
+      "Research and Development Engineer",
+      "Product-minded Software Engineer"
+    ],
+    "working_with_aditya": [
+      "You get a builder who can move from idea to architecture to implementation without heavy hand-offs.",
+      "He has evidence of both experimentation and execution: R and D systems, production AI agents, full stack platforms, and blockchain applications.",
+      "He can contribute in teams that value ownership, adaptability, and practical technical problem solving.",
+      "He is especially valuable when a role needs both modern web engineering and intelligent automation thinking."
+    ],
+    "communication_style": [
+      "Technical when needed, but capable of translating capability into concrete outcomes.",
+      "Good fit for conversations with recruiters, founders, clients, and engineering collaborators."
+    ],
+    "differentiators": [
+      "Range across AI, full stack, and blockchain is uncommon at this stage of career.",
+      "Research experience adds depth, while internships and shipped systems add execution credibility.",
+      "Evidence of mentorship suggests collaboration strength, not just solo execution."
+    ]
+  },
+  "psychology_positioning": {
+    "trust_signals": [
+      "Uses measurable outcomes instead of vague claims.",
+      "Shows both technical depth and delivery reliability.",
+      "Demonstrates ownership across architecture and execution."
+    ],
+    "decision_maker_value": [
+      "Reduces hiring risk because capability is supported by proof, not only promise.",
+      "Creates confidence for stakeholders because he can explain technical choices clearly.",
+      "Increases perceived leverage because one person can contribute across AI, product, and engineering execution."
+    ],
+    "persuasion_angles": [
+      "Risk reduction for hiring managers",
+      "Execution confidence for founders",
+      "Business clarity for clients",
+      "Technical credibility for collaborators"
+    ]
+  },
+  "role_fit_matrix": [
+    {
+      "role": "AI Engineer",
+      "fit": "Strong",
+      "why": [
+        "Has applied AI, ML, NLP, and AI agent experience across multiple projects and roles.",
+        "Can connect model performance to workflow improvement and user impact."
+      ],
+      "proof": [
+        "95% predictive modeling accuracy",
+        "Healthcare agent reduced initial response time by 40%",
+        "Production AI agent integration at Mexgen Technologies"
+      ]
+    },
+    {
+      "role": "Full Stack Developer",
+      "fit": "Strong",
+      "why": [
+        "Comfortable across frontend, backend, data flows, and deployment-oriented thinking.",
+        "Can build complete products rather than isolated features."
+      ],
+      "proof": [
+        "ETH.VOTE end-to-end work",
+        "Next.js, React.js, Node.js, FastAPI experience",
+        "Performance improvements in both product and prototype systems"
+      ]
+    },
+    {
+      "role": "Automation Engineer",
+      "fit": "Strong",
+      "why": [
+        "Uses Python and AI systems to reduce manual work and streamline business operations.",
+        "Works well where intelligent workflows matter more than just model experimentation."
+      ],
+      "proof": [
+        "20% reduction in manual data entry",
+        "Production AI agent integration",
+        "Workflow-driven ML implementation"
+      ]
+    },
+    {
+      "role": "Research and Development Engineer",
+      "fit": "Very Strong",
+      "why": [
+        "Already worked in R and D ownership mode across multiple innovation projects.",
+        "Can investigate, prototype, measure, and mentor in evolving technical environments."
+      ],
+      "proof": [
+        "4+ major innovation projects",
+        "30% faster prototype processing",
+        "Mentored 10+ juniors through SDLC"
+      ]
+    }
+  ],
+  "audience_angles": {
+    "recruiter": [
+      "Clear role fit across AI, full stack, automation, and R and D tracks.",
+      "Strong enough range to support multiple hiring pipelines without sounding generic."
+    ],
+    "founder": [
+      "Useful where one person needs to own architecture, ship features, and think through AI leverage.",
+      "Especially strong in early-stage environments where adaptability matters."
+    ],
+    "client": [
+      "Valuable when the work needs both implementation and technical explanation.",
+      "Can frame technical decisions in terms of speed, reliability, security, and outcomes."
+    ],
+    "collaborator": [
+      "Comfortable in engineering teamwork, agile environments, and mentor-like collaboration.",
+      "Can go deep technically without losing sight of product goals."
+    ]
+  },
+  "objection_handling": [
+    {
+      "concern": "He has only 2+ years of experience.",
+      "response": "The years are early-career, but the project range is wider than average: AI systems, full stack delivery, blockchain security work, R and D leadership, and mentoring. The signal is in the variety and ownership, not just the calendar."
+    },
+    {
+      "concern": "Is he more research-oriented than product-oriented?",
+      "response": "He has both. The R and D background gives depth, while ETH.VOTE, AI workflow automation, and frontend delivery show that he can turn concepts into working systems."
+    },
+    {
+      "concern": "Is he only strong in one niche?",
+      "response": "No. His strongest advantage is the overlap between AI, web engineering, automation, and product execution. That makes him useful in teams where cross-functional technical thinking matters."
+    }
+  ],
+  "proof_points": [
+    {
+      "label": "Experience",
+      "value": "2+ years across R and D, AI/ML, and full stack delivery"
+    },
+    {
+      "label": "Execution",
+      "value": "4+ innovation projects and end-to-end product work"
+    },
+    {
+      "label": "AI Impact",
+      "value": "95% predictive accuracy and production AI agent integration"
+    },
+    {
+      "label": "Systems Thinking",
+      "value": "30% faster prototype processing and secure blockchain architecture"
+    }
+  ],
+  "suggested_prompts": [
+    "Why should we hire Aditya for a full stack or AI role?",
+    "Explain how Aditya creates value for startups and product teams.",
+    "Tell me about ETH.VOTE in a way a hiring manager would care about.",
+    "Which roles are the best fit for Aditya right now?",
+    "How does Aditya combine research depth with shipping ability?",
+    "If I connect with Aditya, what kind of collaborator am I getting?"
+  ],
+  "follow_up_questions": [
+    "What kind of role or team are you evaluating Aditya for?",
+    "Do you want the answer from a recruiter, founder, client, or technical collaborator lens?",
+    "Would you like a concise pitch, a deep technical breakdown, or a business-focused explanation?"
+  ],
+  "sources": [
+    "Resume: ADITYA DEVMURARI RESUME.pdf",
+    "Public site: https://adityadevmurari.vercel.app"
+  ]
+}

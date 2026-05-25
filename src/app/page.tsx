@@ -21,6 +21,7 @@ export default function AIAgentPage() {
   const [loading, setLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const [isKeyConfigured, setIsKeyConfigured] = useState(true);
+  const [suggestions, setSuggestions] = useState(SUGGESTIONS);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,6 +46,10 @@ export default function AIAgentPage() {
 
   const handleSend = async (text: string) => {
     if (!text.trim() || loading) return;
+    
+    // Filter out the selected suggestion chip so it doesn't show up again
+    setSuggestions(prev => prev.filter(s => s !== text));
+
     const userMsg: Message = { role: 'user', content: text };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
@@ -213,18 +218,20 @@ export default function AIAgentPage() {
         </section>
 
         {/* Suggestion Chips */}
-        <section className={`flex-shrink-0 pt-4 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth select-none ${messages.length > 1 ? 'pb-3' : 'pb-6 justify-center flex-wrap'}`}>
-          {SUGGESTIONS.map((sug, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleSend(sug)}
-              disabled={loading}
-              className="shrink-0 text-xs px-4 py-2.5 rounded-xl border border-white/[0.04] hover:border-[#10b981]/30 bg-white/[0.01] hover:bg-[#10b981]/5 text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 active:scale-95 cursor-pointer backdrop-blur-sm"
-            >
-              {sug}
-            </button>
-          ))}
-        </section>
+        {suggestions.length > 0 && (
+          <section className={`flex-shrink-0 pt-4 flex gap-2 overflow-x-auto no-scrollbar scroll-smooth select-none ${messages.length > 1 ? 'pb-3' : 'pb-6 justify-center flex-wrap'}`}>
+            {suggestions.map((sug, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSend(sug)}
+                disabled={loading}
+                className="shrink-0 text-xs px-4 py-2.5 rounded-xl border border-white/[0.04] hover:border-[#10b981]/30 bg-white/[0.01] hover:bg-[#10b981]/5 text-gray-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 active:scale-95 cursor-pointer backdrop-blur-sm"
+              >
+                {sug}
+              </button>
+            ))}
+          </section>
+        )}
 
         {/* Composer */}
         <section className="flex-shrink-0 space-y-4">

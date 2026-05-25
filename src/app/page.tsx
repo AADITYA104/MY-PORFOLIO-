@@ -272,7 +272,7 @@ export default function AIAgentPage() {
 
       </main>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .no-scrollbar::-webkit-scrollbar {
           display: none;
         }
@@ -284,9 +284,10 @@ export default function AIAgentPage() {
         /* Concentric Live Node Double Pulse */
         .live-node-ring {
           position: absolute;
-          inset: -1px;
-          border-radius: inherit;
-          border: 1px solid #10b981;
+          inset: -2px;
+          border-radius: 12px;
+          border: 1px solid rgba(16, 185, 129, 0.4);
+          box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
           opacity: 0;
           pointer-events: none;
           animation: doublePulse 3s cubic-bezier(0.16, 1, 0.3, 1) infinite;
@@ -296,7 +297,7 @@ export default function AIAgentPage() {
         }
         @keyframes doublePulse {
           0% { transform: scale(1); opacity: 0.8; }
-          100% { transform: scale(1.5); opacity: 0; }
+          100% { transform: scale(1.6); opacity: 0; }
         }
 
         /* Subtle Drift Background Grid */
@@ -326,23 +327,23 @@ export default function AIAgentPage() {
 
         /* Smooth Fluid Spring Entrance Bubble */
         .msg-spring-entrance {
-          animation: springEntrance 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.15) both;
+          animation: springEntrance 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
         }
         @keyframes springEntrance {
-          from { opacity: 0; transform: scale(0.97) translateY(12px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
+          0% { opacity: 0; transform: scale(0.93) translateY(20px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         @keyframes chipEntrance {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(12px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
         }
-      `}</style>
+      `}} />
     </div>
   );
 }

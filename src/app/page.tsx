@@ -73,7 +73,20 @@ function renderMarkdown(text: string): React.ReactNode {
         return <strong key={j} className="text-white font-semibold">{part.slice(2, -2)}</strong>;
       const lm = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
       if (lm)
-        return <a key={j} href={lm[2]} target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline underline-offset-2 hover:text-indigo-300 transition-colors">{lm[1]}</a>;
+        return (
+          <a
+            key={j}
+            href={lm[2]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 mx-1 px-2.5 py-1 text-[11px] font-mono font-bold text-indigo-300 hover:text-white border border-indigo-500/20 hover:border-indigo-500/60 bg-indigo-500/5 hover:bg-indigo-500/10 rounded-lg shadow-[0_0_10px_rgba(99,102,241,0.05)] hover:shadow-[0_0_15px_rgba(99,102,241,0.25)] transition-all duration-300 cursor-pointer"
+          >
+            <span>{lm[1]}</span>
+            <svg className="w-2.5 h-2.5 fill-current opacity-60" viewBox="0 0 24 24">
+              <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+            </svg>
+          </a>
+        );
       return <span key={j}>{part}</span>;
     });
     return (
@@ -136,12 +149,66 @@ function ConfidenceBadge({ confidence, iterations }: { confidence: number; itera
               : pct >= 70 ? 'text-amber-400 border-amber-500/20 bg-amber-500/5'
               : 'text-red-400 border-red-500/20 bg-red-500/5';
   return (
-    <div className={`inline-flex items-center gap-1.5 mt-2 text-[9px] font-mono border rounded-lg px-2 py-1 ${color}`}>
+    <div className={`inline-flex items-center gap-1.5 text-[9px] font-mono border rounded-lg px-2 py-1 ${color}`}>
       <span>Verified</span>
       <span className="opacity-40">·</span>
       <span>{pct}% confidence</span>
       {iterations > 1 && <><span className="opacity-40">·</span><span>{iterations} passes</span></>}
     </div>
+  );
+}
+
+// ─── Speech Synthesis Button ──────────────────────────────────────────────────
+function SpeechButton({ text }: { text: string }) {
+  const [speaking, setSpeaking] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined') window.speechSynthesis?.cancel();
+    };
+  }, []);
+
+  const toggleSpeak = () => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+    } else {
+      window.speechSynthesis.cancel();
+      
+      // Clean markdown structures out of speech text for natural voice synthesis
+      const cleanText = text
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // links
+        .replace(/\*\*([^*]+)\*\*/g, '$1')       // bold text
+        .replace(/[◆•-]\s*/g, '')                // lists
+        .trim();
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.rate = 1.05; // Slightly faster for clean pacing
+      utterance.onend = () => setSpeaking(false);
+      utterance.onerror = () => setSpeaking(false);
+      setSpeaking(true);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  return (
+    <button
+      onClick={toggleSpeak}
+      title={speaking ? "Stop speaking" : "Speak response"}
+      className={`p-1.5 rounded-lg border border-white/[0.04] bg-white/[0.02] hover:bg-indigo-500/10 hover:border-indigo-500/30 text-gray-500 hover:text-indigo-400 active:scale-95 transition-all cursor-pointer flex items-center justify-center shrink-0`}
+    >
+      {speaking ? (
+        <svg className="w-3.5 h-3.5 fill-current animate-pulse text-indigo-400" viewBox="0 0 24 24">
+          <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+        </svg>
+      ) : (
+        <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+        </svg>
+      )}
+    </button>
   );
 }
 
@@ -396,9 +463,18 @@ export default function AIAgentPage() {
                     {renderMarkdown(msg.content)}
                   </div>
                 </div>
-                {/* Confidence badge for verified AI answers */}
-                {msg.role === 'assistant' && msg.confidence !== undefined && msg.confidence > 0 && (
-                  <ConfidenceBadge confidence={msg.confidence} iterations={msg.iterations ?? 1} />
+                {/* Confidence badge and speech action buttons aligned */}
+                {msg.role === 'assistant' && (
+                  <div className="flex items-center justify-between gap-3 mt-2 pr-1 w-full shrink-0 min-h-[30px]">
+                    {msg.confidence !== undefined && msg.confidence > 0 ? (
+                      <ConfidenceBadge confidence={msg.confidence} iterations={msg.iterations ?? 1} />
+                    ) : (
+                      <div />
+                    )}
+                    {msg.content !== WELCOME_MSG && (
+                      <SpeechButton text={msg.content} />
+                    )}
+                  </div>
                 )}
               </div>
             </div>

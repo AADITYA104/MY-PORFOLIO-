@@ -938,6 +938,12 @@ export default function Home() {
     if (seen) setBooted(true);
   }, []);
 
+  useEffect(() => {
+    if (booted && typeof window !== 'undefined') {
+      document.title = "Aditya Devmurari | Cyber Diagnostics OS Dashboard";
+    }
+  }, [booted]);
+
   const handleBootComplete = () => {
     sessionStorage.setItem('portfolio_booted', '1');
     setBooted(true);

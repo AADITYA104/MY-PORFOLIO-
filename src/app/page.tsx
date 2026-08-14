@@ -321,6 +321,9 @@ export default function AIAgentPage() {
 
     recognition.onstart = () => {
       setIsRecording(true);
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
     };
 
     recognition.onresult = (event: any) => {
@@ -340,6 +343,9 @@ export default function AIAgentPage() {
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      document.title = "Aditya Devmurari | AI Representative Chatbot";
+    }
     const t = setTimeout(() => setMounted(true), 80);
     return () => clearTimeout(t);
   }, []);

@@ -290,6 +290,13 @@ PERSONA RULES:
 - For casual questions: Keep brief and natural.
 - Format: 2–5 sentences default. Use bullet points only for 3+ items.
 
+GREETINGS & SMALL TALK — IMPORTANT:
+- If someone says "Hello", "Hi", "Hey", "Good morning", "Namaste", "Kem cho" or any greeting: reply warmly and naturally — like a real receptionist would. Say hello back, introduce yourself briefly, and invite them to ask something about Aditya's background or projects. Keep it to 2 sentences max.
+- If someone asks "How are you?": respond naturally ("Doing well, thanks!") and invite their question.
+- If someone says "Thank you" or "Thanks": acknowledge warmly ("Happy to help!") and offer to answer more.
+- If someone says "Bye" or "Goodbye": say a warm goodbye and mention Aditya's email for direct contact.
+- NEVER redirect greetings to professional topics rudely. Handle them naturally first.
+
 ${isRetry ? `CRITIC FEEDBACK FROM PREVIOUS ATTEMPT (MUST address this in your improved response):
 "${state.verifierFeedback}"
 
@@ -566,11 +573,34 @@ const LOCAL_RESPONSES: Record<string, string> = {
 
   identity: `I'm an AI representative built to answer questions about Aditya Devmurari's professional background — not Aditya himself.\n\nFor a direct conversation with Aditya: devmurariaaditya@gmail.com or +91-7046387404.\n\nWhat would you like to know about his work?`,
 
+  greeting: `Hey! Welcome to Aditya's portfolio.\n\nI'm his AI representative — here to tell you about his work, projects, skills, and how to reach him. What would you like to know?`,
+
+  howAreYou: `Doing well, thanks for asking! Ready to tell you anything about Aditya's work.\n\nWant to know about his projects, tech stack, work experience, or how to reach him?`,
+
+  thanks: `Happy to help! If you have more questions about Aditya's background or projects, I'm right here.`,
+
+  bye: `Goodbye! Feel free to come back if you have more questions about Aditya's work. You can also reach him directly at devmurariaaditya@gmail.com.`,
+
   fallback: `I'm here to answer questions about Aditya Devmurari — his background, skills, projects, and how to reach him.\n\nHe's a Full Stack & AI Developer based in Gujarat, India. Flagship project: ETH.VOTE (decentralized blockchain voting). Strong track record in AI/ML (95% model accuracy), cybersecurity (92% threat detection), and NLP (40% faster patient triage).\n\nWhat would you like to know?`,
 };
 
 function getLocalResponse(query: string): string {
-  const q = query.toLowerCase();
+  const q = query.toLowerCase().trim();
+
+  // ── Greetings & small talk — must be checked FIRST ──
+  const greetingWords = ['hello', 'hi', 'hey', 'howdy', 'hola', 'namaste', 'kem cho', 'sup', 'what\'s up', 'whatsup', 'good morning', 'good afternoon', 'good evening', 'good night', 'greetings'];
+  if (greetingWords.some(g => q === g || q.startsWith(g + ' ') || q.startsWith(g + '!') || q.startsWith(g + ',')))
+    return LOCAL_RESPONSES.greeting;
+
+  if (q.includes('how are you') || q.includes('how r u') || q.includes('how do you do') || q.includes('kemon acho') || q.includes('kaisa hai') || q.includes('kya haal'))
+    return LOCAL_RESPONSES.howAreYou;
+
+  if ((q.includes('thank') || q.includes('thanks') || q.includes('thx') || q.includes('ty ') || q === 'ty') && q.length < 40)
+    return LOCAL_RESPONSES.thanks;
+
+  if (q.includes('bye') || q.includes('goodbye') || q.includes('see you') || q.includes('cya') || q.includes('take care') || q.includes('later'))
+    return LOCAL_RESPONSES.bye;
+
   if (q.includes('are you aditya') || q.includes('are you real') || q.includes('who are you') || q.includes('are you ai') || q.includes('is this aditya')) return LOCAL_RESPONSES.identity;
   if (q.includes('write code') || q.includes('help me code') || q.includes('tell me a joke') || q.includes('what is the capital') || q.includes('weather') || q.includes('recipe') || q.includes('politics')) return LOCAL_RESPONSES.offtopic;
   if (q.includes('eth.vote') || q.includes('eth vote') || q.includes('blockchain') || q.includes('web3') || q.includes('solidity') || q.includes('voting') || q.includes('eip')) return LOCAL_RESPONSES.eth_vote;

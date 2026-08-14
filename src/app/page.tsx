@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
+import { HUDDashboard } from '@/components/HUDDashboard';
 
 const NodeNetwork3D = dynamic(
   () => import('@/components/NodeNetwork3D').then((m) => m.NodeNetwork3D),
@@ -213,10 +214,21 @@ function SpeechButton({ text }: { text: string }) {
 }
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
-function AvatarAD({ size = 'sm' }: { size?: 'sm' | 'md' }) {
+function AvatarAD({ size = 'sm', activeStep }: { size?: 'sm' | 'md'; activeStep?: string }) {
   const s = size === 'md' ? 'w-9 h-9 text-xs' : 'w-7 h-7 text-[9px]';
+  
+  let color = 'rgba(99, 102, 241, 0.6)'; // Default Indigo
+  if (activeStep === 'retrieve') color = 'rgba(96, 165, 250, 0.8)'; // Blue
+  if (activeStep === 'draft')    color = 'rgba(99, 102, 241, 0.8)'; // Indigo
+  if (activeStep === 'verify')   color = 'rgba(167, 139, 250, 0.8)'; // Violet
+  if (activeStep === 'fallback') color = 'rgba(245, 158, 11, 0.8)'; // Amber
+  if (activeStep === 'finalize') color = 'rgba(16, 185, 129, 0.8)'; // Emerald
+
   return (
-    <div className={`${s} rounded-xl bg-gradient-to-tr from-indigo-600/30 to-amber-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0 relative`}>
+    <div 
+      className={`${s} rounded-xl bg-gradient-to-tr from-indigo-600/30 to-amber-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0 relative`}
+      style={{ '--ring-color': color } as React.CSSProperties}
+    >
       <div className="live-ring" />
       <div className="live-ring" style={{ animationDelay: '1.4s' }} />
       <span className="font-display font-bold text-indigo-300 relative z-10">AD</span>
@@ -247,6 +259,11 @@ export default function AIAgentPage() {
   const [streaming, setStreaming] = useState('');
   const [loopSteps, setLoopSteps] = useState<LoopStep[]>([]);
   const [usedSuggestions, setUsedSuggestions] = useState<Set<string>>(new Set());
+  const [hudTab, setHudTab] = useState<'system' | 'skills' | 'projects' | 'trivia'>('system');
+  const [highlightedSkill, setHighlightedSkill] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [showHUD, setShowHUD] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -255,6 +272,72 @@ export default function AIAgentPage() {
   const isInitial = messages.length === 1 && !loading;
   const availableSuggestions = ALL_SUGGESTIONS.filter(s => !usedSuggestions.has(s));
   const visibleSuggestions = availableSuggestions.slice(0, 4);
+
+  // Sync HUD Tab tab & highlighted elements from chat text
+  const syncHUDTab = useCallback((query: string, responseText: string) => {
+    const q = query.toLowerCase();
+    const r = responseText.toLowerCase();
+
+    if (q.includes('trivia') || q.includes('game') || q.includes('quiz') || q.includes('challenge')) {
+      setHudTab('trivia');
+      return;
+    }
+
+    const projects = ['eth.vote', 'threat detection', 'healthcare chatbot', 'fake news', 'face mesh', 'face lift', 'netguard', 'inspectflow', 'cxbulk', 'codexservice', 'digivault', 'gym pro', 'lifeconnect', 'gov portal'];
+    const matchedProject = projects.find(p => q.includes(p) || r.includes(p));
+    if (matchedProject) {
+      setSelectedProject(matchedProject);
+      setHudTab('projects');
+      return;
+    }
+
+    const skills = ['skill', 'stack', 'framework', 'language', 'python', 'javascript', 'solidity', 'react', 'next', 'node', 'fastapi', 'tailwind', 'scikit', 'database', 'postgres', 'mysql', 'mongodb'];
+    const matchedSkill = skills.find(s => q.includes(s) || r.includes(s));
+    if (matchedSkill) {
+      if (q.includes('python') || q.includes('ml') || q.includes('ai')) setHighlightedSkill('AI/ML');
+      else if (q.includes('solidity') || q.includes('blockchain') || q.includes('web3') || q.includes('contract')) setHighlightedSkill('Blockchain');
+      else if (q.includes('security') || q.includes('guard') || q.includes('threat')) setHighlightedSkill('Security');
+      else if (q.includes('nlp') || q.includes('chat') || q.includes('triage')) setHighlightedSkill('NLP');
+      else setHighlightedSkill('Full Stack');
+
+      setHudTab('skills');
+      return;
+    }
+  }, []);
+
+  // Web Speech API Voice Dictation
+  const startSpeechRecognition = () => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Speech recognition is not supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const text = event.results[0][0].transcript;
+      setInput(prev => (prev + ' ' + text).trim());
+    };
+
+    recognition.onerror = () => {
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognition.start();
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
@@ -359,6 +442,9 @@ export default function AIAgentPage() {
         confidence: pendingConfidence || undefined,
         iterations: pendingIterations || undefined,
       }]);
+
+      // Sync diagnostics graphics
+      syncHUDTab(trimmed, textAcc);
     } catch {
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -369,7 +455,7 @@ export default function AIAgentPage() {
       setStreaming('');
       setLoopSteps([]);
     }
-  }, [loading, messages]);
+  }, [loading, messages, syncHUDTab]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(input); }
@@ -390,9 +476,9 @@ export default function AIAgentPage() {
         style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", backgroundRepeat: 'repeat', backgroundSize: '128px' }} />
 
       {/* ── HEADER ── */}
-      <header className="relative z-10 w-full max-w-5xl mx-auto px-5 py-4 flex items-center justify-between border-b border-white/[0.04] shrink-0">
+      <header className="relative z-10 w-full max-w-7xl mx-auto px-5 py-4 flex items-center justify-between border-b border-white/[0.04] shrink-0">
         <div className="flex items-center gap-3">
-          <AvatarAD size="md" />
+          <AvatarAD size="md" activeStep={loading ? loopSteps[loopSteps.length - 1]?.step : undefined} />
           <div>
             <p className="font-display font-semibold text-[15px] tracking-tight text-white">Aditya Devmurari</p>
             <div className="flex items-center gap-2 mt-0.5">
@@ -405,17 +491,29 @@ export default function AIAgentPage() {
             </div>
           </div>
         </div>
-        <a href="/portfolio"
-          className="group flex items-center gap-2 text-[11px] font-mono text-gray-400 hover:text-white border border-white/[0.06] hover:border-indigo-500/40 bg-white/[0.02] hover:bg-indigo-500/5 rounded-xl px-4 py-2.5 transition-all duration-300 uppercase tracking-widest cursor-pointer">
-          Portfolio
-          <svg className="w-3 h-3 fill-current opacity-60 group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24">
-            <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L11 14.17V7h2v7.17l2.59-2.58L17 13l-5 5z" />
-          </svg>
-        </a>
+        <div className="flex items-center gap-2">
+          {/* Mobile HUD panel view toggle */}
+          <button
+            onClick={() => setShowHUD(!showHUD)}
+            className="md:hidden px-3.5 py-2.5 rounded-xl border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-400 hover:text-white text-[10px] font-mono font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer"
+          >
+            {showHUD ? 'Show Chat' : 'OS Diagnostics'}
+          </button>
+          <a href="/portfolio"
+            className="group flex items-center gap-2 text-[11px] font-mono text-gray-400 hover:text-white border border-white/[0.06] hover:border-indigo-500/40 bg-white/[0.02] hover:bg-indigo-500/5 rounded-xl px-4 py-2.5 transition-all duration-300 uppercase tracking-widest cursor-pointer">
+            Portfolio
+            <svg className="w-3 h-3 fill-current opacity-60 group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24">
+              <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L11 14.17V7h2v7.17l2.59-2.58L17 13l-5 5z" />
+            </svg>
+          </a>
+        </div>
       </header>
 
-      {/* ── MAIN ── */}
-      <main className="flex-1 w-full max-w-3xl mx-auto px-4 flex flex-col relative z-10 overflow-hidden">
+      {/* ── MAIN SPLIT PANEL ── */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row gap-6 relative z-10 overflow-hidden">
+        
+        {/* Left Panel: Chatbot */}
+        <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${showHUD ? 'hidden md:flex' : 'flex'}`}>
 
         {/* Hero */}
         {isInitial && (
@@ -452,7 +550,9 @@ export default function AIAgentPage() {
           {messages.map((msg, idx) => (
             <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               style={{ animation: 'springUp 0.5s cubic-bezier(0.175,0.885,0.32,1.275) both' }}>
-              {msg.role === 'assistant' && <AvatarAD />}
+              {msg.role === 'assistant' && (
+                <AvatarAD activeStep={msg.confidence !== undefined && msg.confidence >= 0.85 ? 'finalize' : msg.confidence !== undefined && msg.confidence < 0.7 ? 'fallback' : undefined} />
+              )}
               <div className={`max-w-[80%] ml-2.5 ${msg.role === 'user' ? '' : 'flex flex-col'}`}>
                 <div className={`rounded-2xl px-4 py-3.5 text-sm leading-relaxed ${
                   msg.role === 'user'
@@ -483,7 +583,7 @@ export default function AIAgentPage() {
           {/* Active loop status while loading */}
           {loading && loopSteps.length > 0 && (
             <div className="flex w-full justify-start">
-              <AvatarAD />
+              <AvatarAD activeStep={loopSteps[loopSteps.length - 1]?.step} />
               <div className="ml-2.5 flex flex-col">
                 <div className="rounded-2xl rounded-tl-sm px-4 py-3 bg-white/[0.03] border border-white/[0.055] backdrop-blur-sm min-w-[140px]">
                   <LoopStatusBar steps={loopSteps} active={loading} />
@@ -495,7 +595,7 @@ export default function AIAgentPage() {
           {/* Initial neural indicator (before first step arrives) */}
           {loading && loopSteps.length === 0 && (
             <div className="flex w-full justify-start">
-              <AvatarAD />
+              <AvatarAD activeStep="retrieve" />
               <div className="ml-2.5 rounded-2xl rounded-tl-sm px-4 py-3.5 bg-white/[0.03] border border-white/[0.055] backdrop-blur-sm">
                 <NeuralIndicator />
               </div>
@@ -505,7 +605,7 @@ export default function AIAgentPage() {
           {/* Streaming answer (after loop completes, during text stream) */}
           {streaming && !loading && (
             <div className="flex w-full justify-start" style={{ animation: 'springUp 0.35s ease both' }}>
-              <AvatarAD />
+              <AvatarAD activeStep="draft" />
               <div className="max-w-[80%] ml-2.5 rounded-2xl rounded-tl-sm px-4 py-3.5 text-sm bg-white/[0.03] border border-white/[0.055] text-[#cbd5e1] backdrop-blur-sm">
                 <div className="font-body leading-[1.7] whitespace-pre-wrap">
                   {renderMarkdown(streaming)}
@@ -517,7 +617,7 @@ export default function AIAgentPage() {
 
           {streaming && loading && (
             <div className="flex w-full justify-start" style={{ animation: 'springUp 0.35s ease both' }}>
-              <AvatarAD />
+              <AvatarAD activeStep="draft" />
               <div className="max-w-[80%] ml-2.5 rounded-2xl rounded-tl-sm px-4 py-3.5 text-sm bg-white/[0.03] border border-white/[0.055] text-[#cbd5e1] backdrop-blur-sm">
                 <div className="font-body leading-[1.7] whitespace-pre-wrap">
                   {renderMarkdown(streaming)}
@@ -547,6 +647,23 @@ export default function AIAgentPage() {
         {/* ── COMPOSER ── */}
         <section className="shrink-0 pb-5 space-y-3">
           <div className="relative rounded-2xl border border-white/[0.07] bg-white/[0.025] backdrop-blur-sm focus-within:border-indigo-500/40 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.06)] transition-all duration-300 flex items-end gap-2 p-2">
+            
+            {/* Microphone Voice Dictation Button */}
+            <button
+              onClick={startSpeechRecognition}
+              disabled={loading}
+              title={isRecording ? "Recording voice... Click to stop" : "Use voice input"}
+              className={`p-3 rounded-xl border transition-all duration-200 shrink-0 cursor-pointer flex items-center justify-center ${
+                isRecording
+                  ? 'bg-red-500/20 border-red-500 text-red-400 animate-pulse shadow-[0_0_12px_rgba(239,68,68,0.35)]'
+                  : 'bg-white/[0.02] border-white/[0.04] text-gray-500 hover:text-indigo-400 hover:border-indigo-500/20 hover:bg-indigo-500/5'
+              }`}
+            >
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
+              </svg>
+            </button>
+
             <textarea ref={textareaRef} value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown} disabled={loading}
               placeholder="Ask about Aditya's experience, projects, or how to reach him…"
@@ -563,7 +680,21 @@ export default function AIAgentPage() {
             View Full Portfolio
           </a>
         </section>
-      </main>
+      </div>
+
+      {/* Right Side: Cyber Diagnostics Dashboard (HUD Panel) */}
+      <aside className={`w-full md:w-[400px] shrink-0 h-[80vh] md:h-auto overflow-hidden transition-all duration-300 ${
+        showHUD ? 'flex' : 'hidden md:flex'
+      }`}>
+        <HUDDashboard
+          activeTab={hudTab}
+          setActiveTab={setHudTab}
+          highlightedSkill={highlightedSkill}
+          selectedProject={selectedProject}
+          setSelectedProject={setSelectedProject}
+        />
+      </aside>
+    </main>
 
       {/* ── GLOBAL STYLES ── */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -572,7 +703,7 @@ export default function AIAgentPage() {
         .font-mono    { font-family: var(--font-mono), monospace; }
         .live-ring {
           position: absolute; inset: -3px; border-radius: 13px;
-          border: 1px solid rgba(99,102,241,0.6); opacity: 0; pointer-events: none;
+          border: 1px solid var(--ring-color, rgba(99,102,241,0.6)); opacity: 0; pointer-events: none;
           animation: ringPulse 3s ease-in-out infinite;
         }
         @keyframes ringPulse   { 0% { transform: scale(1);    opacity: 0.8; } 100% { transform: scale(1.65); opacity: 0; } }

@@ -279,59 +279,71 @@ function retrieveNode(state: AgentState): Partial<AgentState> {
 async function generateDraftNode(state: AgentState, apiKey: string): Promise<Partial<AgentState>> {
   const isRetry = state.retryCount > 0;
 
-  const systemPrompt = `You are the AI Representative for Aditya Devmurari — a Full Stack & AI Developer based in Gujarat, India.
+  const systemPrompt = `You are a highly intelligent, emotionally aware, and motivational AI Representative for Aditya Devmurari — a Full Stack & AI Developer based in Gujarat, India.
 
-PERSONA RULES:
-- You are NOT Aditya. Speak ABOUT him in third person ("Aditya built...", "He shipped...", "His project...").
-- Never hallucinate. Use ONLY facts from the DATA BLOCK. If a fact is not in the data, say you don't have that detail.
-- No filler openers: Never start with "Great question!", "Certainly!", "Absolutely!", "Of course!".
-- No unverified superlatives: Don't say "best", "#1", "genius" unless present in the data.
-- For hiring/recruiter questions: Give detailed answer, end with contact CTA.
-- For casual questions: Keep brief and natural.
-- Format: 2–5 sentences default. Use bullet points only for 3+ items.
+YOUR CORE MISSION:
+1. Speak about Aditya in third person ("Aditya built...", "He shipped...", "His project..."). You are NOT Aditya himself.
+2. Deliver responses with deep positivity, psychological intelligence, and encouragement.
+3. Keep every response unique, personalized, and emotionally tuned.
+4. Never give dry, rigid, or fixed responses (e.g. generic hello redirects). Treat conversation naturally and warmly.
 
-GREETINGS & SMALL TALK — IMPORTANT:
-- If someone says "Hello", "Hi", "Hey", "Good morning", "Namaste", "Kem cho" or any greeting: reply warmly and naturally — like a real receptionist would. Say hello back, introduce yourself briefly, and invite them to ask something about Aditya's background or projects. Keep it to 2 sentences max.
-- If someone asks "How are you?": respond naturally ("Doing well, thanks!") and invite their question.
-- If someone says "Thank you" or "Thanks": acknowledge warmly ("Happy to help!") and offer to answer more.
-- If someone says "Bye" or "Goodbye": say a warm goodbye and mention Aditya's email for direct contact.
-- NEVER redirect greetings to professional topics rudely. Handle them naturally first.
+GREETING & CHAT ENGINE (Warm, Reciprocal, Empathetic):
+- If the user greets you ("Hello", "Hi", "Namaste", "Kem cho", etc.): reply warmly, introduce yourself briefly as Aditya's representative, ask how they are feeling today, and welcome their questions. Keep it under 2-3 sentences. Do not use generic templates.
+- If they ask "How are you?": respond naturally with energy and invite their questions.
+- If they express gratitude ("Thanks", "Thank you"): acknowledge it with warm appreciation.
+- If they say goodbye: bid them a motivational farewell and provide Aditya's email for contact.
 
-${isRetry ? `CRITIC FEEDBACK FROM PREVIOUS ATTEMPT (MUST address this in your improved response):
-"${state.verifierFeedback}"
+POSITIVE PSYCHOLOGY ENGINE & EMOTION DETECTION:
+- Read between the lines of the query and history to detect the user's emotion (anxiety, stress, sadness, joy, fatigue, curiosity).
+- EMPATHIZE: Always validate their feelings first. ("I understand this feels challenging...", "It is completely normal to feel tired after a long day...")
+- REFRAME: Shift negative sentiments into growth opportunities.
+  * If they say "I am tired" ➔ Acknowledge their hard work, encourage taking a rest, and remind them that tomorrow brings fresh energy.
+  * If they say "Coding is hard" or "I am stuck" ➔ Remind them that struggles are stepping stones. Mention that Aditya also works through complex code challenges (like EIP-712 security) and encourage them.
+- MOTIVATION: Integrate a brief, natural motivational sign-off when suitable. ("You've got this!", "One step at a time!", "I believe in your progress.")
 
-Your previous response was rejected. Please improve it by addressing the critique above.` : ''}
+TRUTH FILTER & HONESTY RULES:
+- For Aditya's professional details (projects, history, stack, specs): Use ONLY the DATA BLOCK below. Do not fabricate, guess, or estimate. If a detail is missing, say "I don't have that verified detail, but we can look it up together or you can ask Aditya directly."
+- For general queries (general coding help, life advice, trivia): Do NOT reject them coldly! Answer them with smart, encouraging positivity, using your general knowledge to be helpful, but gently bring the context back to Aditya where appropriate. For example: "I can absolutely help you think through this! While my primary role is representing Aditya's work, here is a general way to solve this..."
 
-DATA BLOCK (ONLY source of truth):
+${isRetry ? `CRITIC FEEDBACK FROM PREVIOUS ATTEMPT (You must address this in your refined response):
+"${state.verifierFeedback}"` : ''}
+
+DATA BLOCK (Source of truth for Aditya's professional profile):
 ${state.context}`;
 
-  const historyForPrompt = state.history.slice(-8).map(m => ({
-    role: m.role as 'user' | 'assistant',
-    content: m.content,
+  const historyMapped = state.history.slice(-8).map(m => ({
+    role: m.role === 'user' ? 'user' : 'model',
+    parts: [{ text: m.content }]
   }));
 
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...historyForPrompt,
-        { role: 'user', content: state.query },
+      contents: [
+        ...historyMapped,
+        {
+          role: 'user',
+          parts: [{ text: state.query }]
+        }
       ],
-      max_tokens: 500,
-      temperature: isRetry ? 0.2 : 0.3, // Even lower temperature on retry for precision
-      stream: false,
-    }),
+      systemInstruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      generationConfig: {
+        temperature: isRetry ? 0.25 : 0.45, // Slightly higher default temp for creative psychology
+        maxOutputTokens: 600
+      }
+    })
   });
 
-  if (!response.ok) throw new Error(`Draft LLM error: ${response.status}`);
+  if (!response.ok) throw new Error(`Draft Gemini API error: ${response.status}`);
   const data = await response.json();
-  const draft = data.choices?.[0]?.message?.content || '';
+  const draft = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
   return {
     draftResponse: draft,
@@ -350,16 +362,16 @@ interface VerifierOutput {
 }
 
 async function verifyNode(state: AgentState, apiKey: string): Promise<Partial<AgentState>> {
-  const verifierPrompt = `You are a strict Fact Verifier and Quality Critic for Aditya Devmurari's AI portfolio representative.
+  const verifierPrompt = `You are a strict Fact Verifier and Quality Critic for Aditya Devmurari's AI representative.
 
-Your ONLY job: Evaluate the Draft Response against the Data Block. Return a JSON object.
+Your ONLY job: Evaluate the Draft Response against the Data Block and the Query. Return a JSON object.
 
 CRITICAL EVALUATION RULES:
-1. GROUNDING: Is every single claim in the Draft directly traceable to the Data Block? If ANY claim cannot be verified from the Data Block, mark is_accurate=false and confidence_score below 0.5.
-2. PERSONA: Is the response in third person ("Aditya...", "He...")? If first person ("I am Aditya..."), mark as inaccurate.
+1. GROUNDING: If the Draft makes professional claims about Aditya that are not in the Data Block, mark is_accurate=false and confidence_score below 0.5.
+   - NOTE: General advice, psychology reframing, and greetings do NOT require grounding in the Data Block.
+2. PERSONA: If the response talks about Aditya, is it in third person ("Aditya...", "He...")? If first person ("I am Aditya..."), mark as inaccurate.
 3. HALLUCINATION: Did the Draft invent dates, numbers, company names, or project details not in the Data Block? If yes, confidence_score = 0.0.
-4. RELEVANCE: Does the Draft actually answer the Query? If off-topic, confidence_score < 0.7.
-5. TONE: Does it start with banned openers (Great question!, Certainly!, Absolutely!)? If yes, deduct 0.1 from score.
+4. TONE: Is the response empathetic, positive, and helpful? If dry or robotic, deduct 0.1 from the confidence score.
 
 Query: "${state.query}"
 
@@ -369,36 +381,41 @@ ${state.context}
 Draft Response:
 "${state.draftResponse}"
 
-Respond ONLY with valid JSON, no extra text:
+Respond ONLY with valid JSON matching this schema:
 {
-  "is_accurate": true or false,
-  "confidence_score": number between 0.0 and 1.0,
-  "critique": "specific actionable critique if score < 0.85, else 'Verified.' "
+  "is_accurate": boolean,
+  "confidence_score": number (between 0.0 and 1.0),
+  "critique": "actionable feedback if confidence_score < 0.82, else 'Verified.'"
 }`;
 
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'user', content: verifierPrompt }],
-      max_tokens: 200,
-      temperature: 0.1, // Very low — verifier must be deterministic
-      stream: false,
-      response_format: { type: 'json_object' }, // Groq JSON mode
-    }),
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: verifierPrompt }]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 250,
+        responseMimeType: "application/json"
+      }
+    })
   });
 
   if (!response.ok) {
-    // If verifier fails, optimistically pass with 0.85
-    return { verifierScore: 0.85, verifierFeedback: 'Verifier unavailable — passing optimistically.', loopStep: 'finalize' };
+    return { verifierScore: 0.85, verifierFeedback: 'Verifier unavailable — passing.', loopStep: 'finalize' };
   }
 
   const data = await response.json();
-  const rawContent = data.choices?.[0]?.message?.content || '{}';
+  const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
 
   let result: VerifierOutput;
   try {
@@ -635,23 +652,23 @@ export async function POST(req: NextRequest) {
 
     const userMessage = messages[messages.length - 1]?.content || '';
     const history = messages.slice(0, -1); // Everything before last message = history
-    const groqApiKey = process.env.GROQ_API_KEY;
+    
+    // Default to user supplied key, fallback to process.env.GEMINI_API_KEY
+    const geminiApiKey = process.env.GEMINI_API_KEY;
 
     const encoder = new TextEncoder();
 
-    // ── LOCAL MODE (no API key) — fast keyword-match fallback ──
-    if (!groqApiKey) {
+    // ── LOCAL MODE fallback when API key is completely absent ──
+    if (!geminiApiKey) {
       const reply = getLocalResponse(userMessage);
       const stream = new ReadableStream({
         async start(controller) {
-          // Simulate step events for UI consistency
           controller.enqueue(encoder.encode(stepEvent('retrieve', 'Searching knowledge base…')));
           await delay(200);
           controller.enqueue(encoder.encode(stepEvent('draft', 'Composing answer…')));
           await delay(200);
           controller.enqueue(encoder.encode(stepEvent('finalize', 'Verified ✓ (local mode)')));
           await delay(100);
-          // Stream answer word by word
           for (const word of reply.split(' ')) {
             controller.enqueue(encoder.encode(word + ' '));
             await delay(14);
@@ -676,7 +693,7 @@ export async function POST(req: NextRequest) {
           const { answer, confidence, iterations } = await runAgenticLoop(
             userMessage,
             history,
-            groqApiKey,
+            geminiApiKey,
             emit
           );
 

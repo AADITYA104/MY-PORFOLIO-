@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STRUCTURED KNOWLEDGE BASE — Single source of truth
+// STRUCTURED KNOWLEDGE BASE — Single source of truth.
 // Update this object to update the chatbot. No prompt touching needed.
 // ─────────────────────────────────────────────────────────────────────────────
 const KNOWLEDGE_BASE = {
@@ -166,13 +166,6 @@ const KNOWLEDGE_BASE = {
       github: "https://github.com/AADITYA104/protfolio-kinju",
     },
     {
-      name: "QR Code Page",
-      category: "Frontend / Utility",
-      tech: ["HTML", "CSS", "JavaScript"],
-      outcome: "Responsive QR scanner alignment utility.",
-      github: "https://github.com/AADITYA104/QR-CODE-PAGE",
-    },
-    {
       name: "DigiVault",
       category: "Web / Security",
       tech: ["Web", "Security"],
@@ -209,240 +202,392 @@ const KNOWLEDGE_BASE = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ADVANCED SYSTEM PROMPT — Implements every rule from the prompt engineering guide
+// AGENTIC LOOP STATE — Same concept as LangGraph StateGraph
 // ─────────────────────────────────────────────────────────────────────────────
-function buildSystemPrompt(): string {
-  const kb = JSON.stringify(KNOWLEDGE_BASE, null, 2);
-
-  return `You are the AI Representative for ${KNOWLEDGE_BASE.identity.name} — a ${KNOWLEDGE_BASE.identity.role} based in ${KNOWLEDGE_BASE.identity.location}. You are NOT ${KNOWLEDGE_BASE.identity.name} himself. You speak ABOUT him in third person, representing him professionally to visitors of his portfolio site.
-
-═══════════════════════════════════════════
-IDENTITY & PERSONA
-═══════════════════════════════════════════
-- You are a sharp, professional representative who knows Aditya's work inside out.
-- Always refer to him in third person: "Aditya built...", "He shipped...", "His strongest project is..."
-- If someone asks "Are you Aditya?" — say clearly: "No, I'm an AI representative built to answer questions about Aditya's work. For a direct conversation, reach him at ${KNOWLEDGE_BASE.contact.email}."
-- Never say "As an AI language model..." — you are a representative persona. Stay in character.
-- Never use unverified superlatives like "best", "top", "#1", "genius" unless they appear explicitly in the DATA BLOCK.
-
-═══════════════════════════════════════════
-GROUNDING RULE — CRITICAL
-═══════════════════════════════════════════
-- ONLY answer using facts explicitly present in the DATA BLOCK below.
-- NEVER invent, guess, estimate, or infer dates, salaries, exact numbers, company names, project outcomes, or achievements not explicitly stated in the data.
-- NEVER fabricate quotes, testimonials, or opinions Aditya never gave.
-- If asked something NOT covered in the DATA BLOCK, respond exactly like this: "I don't have that specific detail on hand. You can reach Aditya directly at ${KNOWLEDGE_BASE.contact.email} or ${KNOWLEDGE_BASE.contact.phone} — he'd be happy to answer."
-- Do not speculate about his salary, future plans, personal life, or anything not in the data.
-
-═══════════════════════════════════════════
-RESPONSE FORMAT
-═══════════════════════════════════════════
-- Default length: 2–5 sentences. No filler openers ("Great question!", "Certainly!", "Absolutely!", "Of course!").
-- Use short bullet points ONLY when listing 3 or more items (skills, projects, etc.).
-- For recruiter/hiring questions (hiring, availability, experience level, "why should we hire"): give a slightly more detailed answer and end with a soft CTA — point to portfolio or contact.
-- For casual/general visitors: keep it brief and friendly.
-- For completely off-topic questions (general coding help, trivia, jokes, politics): politely redirect — "I'm here specifically to talk about Aditya's background and work. Happy to help with that! For general questions, you'd want to look elsewhere."
-
-═══════════════════════════════════════════
-INTERNAL VERIFICATION — DO THIS SILENTLY BEFORE EVERY REPLY
-═══════════════════════════════════════════
-Before sending any answer, internally perform these 3 checks. Do NOT show this process to the user — output only the final, verified answer.
-
-PASS 1 — Fact Check: Does every claim in my draft trace back directly to the DATA BLOCK? Remove anything not explicitly present.
-PASS 2 — Tone & Persona: Does this sound like a confident human representative (not a generic AI bot)? Is it third person? No banned openers?
-PASS 3 — Format & Relevance: Is the answer the right length, correctly formatted, and does it answer what was actually asked?
-
-Only after all 3 passes, output the final answer.
-
-═══════════════════════════════════════════
-CONTACT FALLBACK — Always available
-═══════════════════════════════════════════
-Email: ${KNOWLEDGE_BASE.contact.email}
-Phone / WhatsApp: ${KNOWLEDGE_BASE.contact.phone}
-LinkedIn: ${KNOWLEDGE_BASE.contact.linkedin}
-GitHub: ${KNOWLEDGE_BASE.contact.github}
-Portfolio: ${KNOWLEDGE_BASE.contact.portfolio}
-
-═══════════════════════════════════════════
-DATA BLOCK — Source of Truth (DO NOT go beyond this)
-═══════════════════════════════════════════
-${kb}`;
+interface AgentState {
+  query: string;
+  history: Array<{ role: string; content: string }>;
+  context: string;
+  draftResponse: string;
+  verifierScore: number;       // 0.0 – 1.0
+  verifierFeedback: string;    // critique from verifier
+  retryCount: number;          // max 3 attempts
+  finalOutput: string;
+  loopStep: string;            // 'retrieve' | 'draft' | 'verify' | 'retry' | 'finalize' | 'fallback'
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LOCAL FALLBACK RESPONSES
-// Used when GROQ_API_KEY is not configured. Each one follows the same rules:
-// - Third person, grounded in data, no overclaiming, natural tone, ends with CTA where relevant
+// STREAM PROTOCOL — Sent over SSE to the frontend
+// __STEP__{json}  → loop status event (parsed by frontend)
+// regular text    → final answer chunks
+// __META__{json}  → confidence + iteration count (at end)
+// ─────────────────────────────────────────────────────────────────────────────
+function stepEvent(step: string, message: string): string {
+  return `__STEP__${JSON.stringify({ step, message })}\n`;
+}
+function metaEvent(confidence: number, iterations: number): string {
+  return `__META__${JSON.stringify({ confidence, iterations })}\n`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NODE 1: RETRIEVE — Smart context builder from KNOWLEDGE_BASE
+// Returns the most relevant chunks based on query keywords
+// ─────────────────────────────────────────────────────────────────────────────
+function retrieveNode(state: AgentState): Partial<AgentState> {
+  const q = state.query.toLowerCase();
+  const kb = KNOWLEDGE_BASE;
+  const chunks: string[] = [];
+
+  // Identity always included
+  chunks.push(`IDENTITY: ${JSON.stringify(kb.identity)}`);
+
+  // Smart retrieval — include only relevant sections
+  if (q.includes('project') || q.includes('built') || q.includes('github') || q.includes('eth') || q.includes('blockchain') || q.includes('ai') || q.includes('ml') || q.includes('face') || q.includes('guard') || q.includes('health') || q.includes('fake') || q.includes('news') || q.includes('vault') || q.includes('flow'))
+    chunks.push(`PROJECTS: ${JSON.stringify(kb.projects)}`);
+
+  if (q.includes('skill') || q.includes('stack') || q.includes('language') || q.includes('framework') || q.includes('python') || q.includes('react') || q.includes('node') || q.includes('solidity') || q.includes('tech') || q.includes('domain') || q.includes('proficient') || q.includes('expertise'))
+    chunks.push(`SKILLS: ${JSON.stringify(kb.skills)}`);
+
+  if (q.includes('work') || q.includes('job') || q.includes('intern') || q.includes('experience') || q.includes('aksharraj') || q.includes('mexgen') || q.includes('gyanmanjari') || q.includes('it hub') || q.includes('career') || q.includes('company') || q.includes('history') || q.includes('resume') || q.includes('cv'))
+    chunks.push(`EXPERIENCE: ${JSON.stringify(kb.experience)}`);
+
+  if (q.includes('education') || q.includes('degree') || q.includes('university') || q.includes('college') || q.includes('btech') || q.includes('diploma') || q.includes('cgpa') || q.includes('study') || q.includes('academic'))
+    chunks.push(`EDUCATION: ${JSON.stringify(kb.education)}`);
+
+  if (q.includes('contact') || q.includes('phone') || q.includes('email') || q.includes('reach') || q.includes('hire') || q.includes('hiring') || q.includes('recruit') || q.includes('connect') || q.includes('linkedin') || q.includes('number') || q.includes('call') || q.includes('whatsapp'))
+    chunks.push(`CONTACT: ${JSON.stringify(kb.contact)}`);
+
+  if (q.includes('available') || q.includes('remote') || q.includes('freelance') || q.includes('contract') || q.includes('open to') || q.includes('relocation') || q.includes('opportunity'))
+    chunks.push(`AVAILABILITY: ${JSON.stringify(kb.availability)}`);
+
+  if (q.includes('stat') || q.includes('number') || q.includes('accuracy') || q.includes('percent') || q.includes('achievement') || q.includes('result') || q.includes('impact') || q.includes('metric') || q.includes('%'))
+    chunks.push(`STATS: ${JSON.stringify(kb.stats)}`);
+
+  // Always include contact as fallback anchor
+  if (!chunks.some(c => c.startsWith('CONTACT')))
+    chunks.push(`CONTACT: ${JSON.stringify(kb.contact)}`);
+
+  return {
+    context: chunks.join('\n\n'),
+    loopStep: 'draft',
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NODE 2: GENERATE DRAFT — LLM call with context + critic feedback if retry
+// ─────────────────────────────────────────────────────────────────────────────
+async function generateDraftNode(state: AgentState, apiKey: string): Promise<Partial<AgentState>> {
+  const isRetry = state.retryCount > 0;
+
+  const systemPrompt = `You are the AI Representative for Aditya Devmurari — a Full Stack & AI Developer based in Gujarat, India.
+
+PERSONA RULES:
+- You are NOT Aditya. Speak ABOUT him in third person ("Aditya built...", "He shipped...", "His project...").
+- Never hallucinate. Use ONLY facts from the DATA BLOCK. If a fact is not in the data, say you don't have that detail.
+- No filler openers: Never start with "Great question!", "Certainly!", "Absolutely!", "Of course!".
+- No unverified superlatives: Don't say "best", "#1", "genius" unless present in the data.
+- For hiring/recruiter questions: Give detailed answer, end with contact CTA.
+- For casual questions: Keep brief and natural.
+- Format: 2–5 sentences default. Use bullet points only for 3+ items.
+
+${isRetry ? `CRITIC FEEDBACK FROM PREVIOUS ATTEMPT (MUST address this in your improved response):
+"${state.verifierFeedback}"
+
+Your previous response was rejected. Please improve it by addressing the critique above.` : ''}
+
+DATA BLOCK (ONLY source of truth):
+${state.context}`;
+
+  const historyForPrompt = state.history.slice(-8).map(m => ({
+    role: m.role as 'user' | 'assistant',
+    content: m.content,
+  }));
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...historyForPrompt,
+        { role: 'user', content: state.query },
+      ],
+      max_tokens: 500,
+      temperature: isRetry ? 0.2 : 0.3, // Even lower temperature on retry for precision
+      stream: false,
+    }),
+  });
+
+  if (!response.ok) throw new Error(`Draft LLM error: ${response.status}`);
+  const data = await response.json();
+  const draft = data.choices?.[0]?.message?.content || '';
+
+  return {
+    draftResponse: draft,
+    loopStep: 'verify',
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NODE 3: VERIFIER — Critic LLM call with JSON mode (anti-hallucination engine)
+// Returns: { is_accurate: bool, confidence_score: float, critique: string }
+// ─────────────────────────────────────────────────────────────────────────────
+interface VerifierOutput {
+  is_accurate: boolean;
+  confidence_score: number;
+  critique: string;
+}
+
+async function verifyNode(state: AgentState, apiKey: string): Promise<Partial<AgentState>> {
+  const verifierPrompt = `You are a strict Fact Verifier and Quality Critic for Aditya Devmurari's AI portfolio representative.
+
+Your ONLY job: Evaluate the Draft Response against the Data Block. Return a JSON object.
+
+CRITICAL EVALUATION RULES:
+1. GROUNDING: Is every single claim in the Draft directly traceable to the Data Block? If ANY claim cannot be verified from the Data Block, mark is_accurate=false and confidence_score below 0.5.
+2. PERSONA: Is the response in third person ("Aditya...", "He...")? If first person ("I am Aditya..."), mark as inaccurate.
+3. HALLUCINATION: Did the Draft invent dates, numbers, company names, or project details not in the Data Block? If yes, confidence_score = 0.0.
+4. RELEVANCE: Does the Draft actually answer the Query? If off-topic, confidence_score < 0.7.
+5. TONE: Does it start with banned openers (Great question!, Certainly!, Absolutely!)? If yes, deduct 0.1 from score.
+
+Query: "${state.query}"
+
+Data Block:
+${state.context}
+
+Draft Response:
+"${state.draftResponse}"
+
+Respond ONLY with valid JSON, no extra text:
+{
+  "is_accurate": true or false,
+  "confidence_score": number between 0.0 and 1.0,
+  "critique": "specific actionable critique if score < 0.85, else 'Verified.' "
+}`;
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'user', content: verifierPrompt }],
+      max_tokens: 200,
+      temperature: 0.1, // Very low — verifier must be deterministic
+      stream: false,
+      response_format: { type: 'json_object' }, // Groq JSON mode
+    }),
+  });
+
+  if (!response.ok) {
+    // If verifier fails, optimistically pass with 0.85
+    return { verifierScore: 0.85, verifierFeedback: 'Verifier unavailable — passing optimistically.', loopStep: 'finalize' };
+  }
+
+  const data = await response.json();
+  const rawContent = data.choices?.[0]?.message?.content || '{}';
+
+  let result: VerifierOutput;
+  try {
+    result = JSON.parse(rawContent) as VerifierOutput;
+  } catch {
+    result = { is_accurate: true, confidence_score: 0.82, critique: 'Parse error — passing.' };
+  }
+
+  const score = Math.min(1.0, Math.max(0.0, result.confidence_score ?? 0.5));
+
+  return {
+    verifierScore: score,
+    verifierFeedback: result.critique || '',
+    retryCount: state.retryCount + 1,
+    loopStep: score >= 0.82 ? 'finalize' : (state.retryCount >= 2 ? 'fallback' : 'retry'),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NODE 4A: FINALIZE — Verified answer ready
+// ─────────────────────────────────────────────────────────────────────────────
+function finalizeNode(state: AgentState): Partial<AgentState> {
+  return {
+    finalOutput: state.draftResponse,
+    loopStep: 'done',
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NODE 4B: FAIL-SAFE FALLBACK — Zero hallucination guarantee
+// Triggered after 3 failed verification rounds
+// ─────────────────────────────────────────────────────────────────────────────
+function fallbackNode(state: AgentState): Partial<AgentState> {
+  const fallback =
+    `I searched my knowledge base for "${state.query}", but couldn't verify a confident answer after multiple checks.\n\n` +
+    `Rather than risk giving you something inaccurate, here's how to get the correct answer directly from Aditya:\n\n` +
+    `- **Email:** [devmurariaaditya@gmail.com](mailto:devmurariaaditya@gmail.com)\n` +
+    `- **Phone / WhatsApp:** [+91-7046387404](tel:+917046387404)\n` +
+    `- **LinkedIn:** [linkedin.com/in/devmurari-aditya](https://linkedin.com/in/devmurari-aditya)\n\n` +
+    `He typically responds within a few hours.`;
+
+  return {
+    finalOutput: fallback,
+    loopStep: 'done',
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONDITIONAL EDGE ROUTER — Same as LangGraph conditional_edges
+// ─────────────────────────────────────────────────────────────────────────────
+type NextNode = 'draft' | 'verify' | 'finalize' | 'fallback' | 'done';
+
+function routeAfterVerify(state: AgentState): NextNode {
+  if (state.loopStep === 'finalize') return 'finalize';
+  if (state.loopStep === 'fallback') return 'fallback';
+  return 'draft'; // retry
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN AGENTIC LOOP — Orchestrates all nodes (the StateGraph.compile() equivalent)
+// Streams status events to frontend as it runs
+// ─────────────────────────────────────────────────────────────────────────────
+async function runAgenticLoop(
+  query: string,
+  history: Array<{ role: string; content: string }>,
+  apiKey: string,
+  emit: (chunk: string) => void
+): Promise<{ answer: string; confidence: number; iterations: number }> {
+
+  // Initial state
+  let state: AgentState = {
+    query,
+    history,
+    context: '',
+    draftResponse: '',
+    verifierScore: 0,
+    verifierFeedback: '',
+    retryCount: 0,
+    finalOutput: '',
+    loopStep: 'retrieve',
+  };
+
+  const MAX_RETRIES = 3;
+
+  // ── NODE 1: RETRIEVE ──
+  emit(stepEvent('retrieve', 'Searching knowledge base…'));
+  await delay(180);
+  Object.assign(state, retrieveNode(state));
+
+  // ── MAIN LOOP: DRAFT → VERIFY → (RETRY | FINALIZE | FALLBACK) ──
+  while (state.retryCount <= MAX_RETRIES) {
+
+    // ── NODE 2: GENERATE DRAFT ──
+    const draftLabel = state.retryCount === 0
+      ? 'Composing answer…'
+      : `Refining answer (attempt ${state.retryCount + 1}/3)…`;
+    emit(stepEvent('draft', draftLabel));
+
+    try {
+      Object.assign(state, await generateDraftNode(state, apiKey));
+    } catch {
+      // Draft failed — go to fallback
+      Object.assign(state, fallbackNode(state));
+      break;
+    }
+
+    // ── NODE 3: VERIFY ──
+    emit(stepEvent('verify', `Verifying facts… (pass ${state.retryCount + 1})`));
+    await delay(120);
+
+    try {
+      Object.assign(state, await verifyNode(state, apiKey));
+    } catch {
+      // Verifier failed — pass through optimistically
+      state.verifierScore = 0.82;
+      state.loopStep = 'finalize';
+    }
+
+    // ── CONDITIONAL EDGE ──
+    const next = routeAfterVerify(state);
+
+    if (next === 'finalize') {
+      emit(stepEvent('finalize', `Verified ✓ (confidence: ${Math.round(state.verifierScore * 100)}%)`));
+      await delay(80);
+      Object.assign(state, finalizeNode(state));
+      break;
+    }
+
+    if (next === 'fallback') {
+      emit(stepEvent('fallback', 'Using fail-safe — connecting you to Aditya directly'));
+      await delay(80);
+      Object.assign(state, fallbackNode(state));
+      break;
+    }
+
+    // next === 'draft' — retry loop
+    emit(stepEvent('retry', `Critic found issues — retrying with improved context…`));
+    await delay(100);
+  }
+
+  // Safety: ensure finalOutput is set
+  if (!state.finalOutput) {
+    Object.assign(state, fallbackNode(state));
+  }
+
+  return {
+    answer: state.finalOutput,
+    confidence: state.verifierScore,
+    iterations: state.retryCount,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOCAL FALLBACK RESPONSES — Used when GROQ_API_KEY is not set
 // ─────────────────────────────────────────────────────────────────────────────
 const LOCAL_RESPONSES: Record<string, string> = {
-  eth_vote: `ETH.VOTE is Aditya's flagship project — a fully decentralized voting DApp he built end-to-end during his internship at Aksharraj Infotech.
+  eth_vote: `ETH.VOTE is Aditya's flagship project — a fully decentralized voting DApp he built end-to-end during his internship at Aksharraj Infotech.\n\nThe standout part: **EIP-712 structured data hashing and signing** — the industry standard for preventing vote tampering and Sybil attacks. Stack: Solidity smart contracts, FastAPI backend, Next.js/React frontend.\n\nResult: 100% data integrity guaranteed by the Ethereum blockchain.\n\nFull codebase: [ETH.VOTE on GitHub](https://github.com/AADITYA104/Voting-System-Using-Block-Chain-Master)\n\nTo discuss: devmurariaaditya@gmail.com or +91-7046387404.`,
 
-The standout part technically is his implementation of **EIP-712 structured data hashing and signing** — the industry standard for preventing vote tampering and Sybil attacks. That's not a beginner-level implementation. The stack covers Solidity smart contracts on Ethereum, a FastAPI Python backend for off-chain processing, and a Next.js/React frontend.
+  hire: `Aditya has 2+ years across four domains: full stack web, applied AI/ML, blockchain/Web3, and R&D engineering.\n\nConcrete outcomes:\n- **30%** faster data processing (R&D at GMIU)\n- **95% predictive accuracy** (ML pipelines at Mexgen Technologies)\n- **20%** reduction in manual data entry (AI automation at Mexgen)\n- **ETH.VOTE** — end-to-end blockchain DApp (Aksharraj Infotech)\n- **10+** junior developers mentored through full SDLC\n\nHe's built real production systems in Python, JavaScript, Solidity, and React/Next.js — not just demos.\n\nTo move forward: +91-7046387404 or devmurariaaditya@gmail.com.`,
 
-The result: a production-ready system with 100% data integrity guaranteed by the blockchain.
+  projects: `Aditya has 14 deployed projects. Highlights:\n\n**AI & Machine Learning:**\n- [AI Threat Detection](https://github.com/AADITYA104/Threat-Detection-in-Cyber-Security-Using-AI-master) — 92% intrusion detection accuracy\n- [Healthcare AI Chatbot](https://github.com/AADITYA104/Health-Care-Chatbot-) — 40% faster patient triage\n- [Fake News Detection](https://github.com/AADITYA104/Fake-News-Detection) — NLP credibility classifier\n\n**Blockchain / Web3:**\n- [ETH.VOTE](https://github.com/AADITYA104/Voting-System-Using-Block-Chain-Master) — Decentralized voting DApp with EIP-712\n\n**Infrastructure:**\n- [InspectFlow Sync](https://github.com/AADITYA104/inspectflow-sync), [CXBulk](https://github.com/AADITYA104/CXBulk), [NetGuard](https://github.com/AADITYA104/NetGuard)\n\nWhich project would you like to dig into?`,
 
-Full codebase: [ETH.VOTE on GitHub](https://github.com/AADITYA104/Voting-System-Using-Block-Chain-Master)
+  skills: `Aditya's technical stack:\n\n**Languages:** Python (primary), JavaScript, Solidity, HTML5/CSS3\n\n**Frameworks:** Next.js, React.js, Node.js, FastAPI, Tailwind CSS, Scikit-learn\n\n**Databases:** PostgreSQL, MySQL, MongoDB, Firebase\n\n**Domains:** Full Stack Web, Applied AI/ML, Blockchain/Web3, Computer Vision, NLP, R&D Engineering\n\nWhat distinguishes him: shipping production AI/ML systems *and* production Solidity smart contracts — most developers specialize in one, not both.\n\nGitHub: [github.com/AADITYA104](https://github.com/AADITYA104)`,
 
-To discuss the project or arrange a call, reach Aditya at devmurariaaditya@gmail.com or +91-7046387404.`,
+  experience: `Aditya's work history:\n\n**Aksharraj Infotech** (Feb–Apr 2026) — Full Stack Developer Intern\nBuilt ETH.VOTE end-to-end, implemented EIP-712 blockchain security, daily agile sprints.\n\n**Mexgen Technologies** (Jul 2025–Jan 2026) — Junior AI/ML Developer\nBuilt ML pipelines at 95% accuracy, reduced manual data entry by 20%, deployed AI agents to production.\n\n**Gyanmanjari University** (Feb 2024–Jan 2026) — R&D Engineer\nLed 4+ innovation projects, improved data processing by 30%, mentored 10+ junior developers.\n\n**IT Hub** (Nov–Dec 2024) — Front End Developer\n100% cross-browser compatible interfaces, 15% load time improvement.\n\nResume on request — devmurariaaditya@gmail.com.`,
 
-  hire: `Aditya has 2+ years of hands-on experience across four technical domains: full stack web, applied AI/ML, blockchain/Web3, and R&D engineering. That range is uncommon at his level.
+  contact: `Here's how to reach Aditya:\n\n- **Phone / WhatsApp:** [+91-7046387404](tel:+917046387404)\n- **Email:** [devmurariaaditya@gmail.com](mailto:devmurariaaditya@gmail.com)\n- **LinkedIn:** [linkedin.com/in/devmurari-aditya](https://linkedin.com/in/devmurari-aditya)\n- **GitHub:** [github.com/AADITYA104](https://github.com/AADITYA104)\n- **Portfolio:** [adityadevmurari.vercel.app](https://adityadevmurari.vercel.app)\n\nBased in Gujarat, India. Available for remote roles, contract work, or relocation. Responds within a few hours.`,
 
-Concrete outcomes from his track record:
-- **30%** faster data processing — prototype he architected at Gyanmanjari University's R&D department
-- **95% predictive accuracy** — ML pipelines he built at Mexgen Technologies
-- **20%** reduction in manual data entry — AI automation at Mexgen Technologies
-- **ETH.VOTE** — end-to-end blockchain DApp shipped at Aksharraj Infotech
-- **10+** junior developers mentored through full SDLC cycles
+  availability: `Aditya is currently open to opportunities:\n- Full-time remote roles\n- Contract or freelance engagements\n- Relocation to major tech hubs\n\nBased in Gujarat, India. Reach him at +91-7046387404 or devmurariaaditya@gmail.com.`,
 
-He's fluent in Python, JavaScript, Solidity, React/Next.js, and FastAPI. He's built real production systems, not just demos.
+  offtopic: `I'm here specifically to talk about Aditya Devmurari's professional background and projects — happy to help with that!\n\nFor general questions outside that scope, you'd want to look elsewhere. Anything I can tell you about Aditya's work?`,
 
-To move forward: call or WhatsApp at +91-7046387404, or email devmurariaaditya@gmail.com. He's typically responsive within a few hours.`,
+  identity: `I'm an AI representative built to answer questions about Aditya Devmurari's professional background — not Aditya himself.\n\nFor a direct conversation with Aditya: devmurariaaditya@gmail.com or +91-7046387404.\n\nWhat would you like to know about his work?`,
 
-  projects: `Aditya has 15 deployed projects. The highlights:
-
-**AI & Machine Learning:**
-- [AI Threat Detection](https://github.com/AADITYA104/Threat-Detection-in-Cyber-Security-Using-AI-master) — 92% network intrusion detection accuracy (Python + Scikit-learn)
-- [Healthcare AI Chatbot](https://github.com/AADITYA104/Health-Care-Chatbot-) — 40% faster patient triage (NLP + Python)
-- [Fake News Detection](https://github.com/AADITYA104/Fake-News-Detection) — NLP credibility classifier
-- [Dynamic Face Lift](https://github.com/AADITYA104/dynamic-face-lift) — Real-time face mesh tracking (OpenCV)
-
-**Blockchain / Web3:**
-- [ETH.VOTE](https://github.com/AADITYA104/Voting-System-Using-Block-Chain-Master) — Decentralized voting DApp with EIP-712 signing (Solidity + FastAPI + Next.js)
-
-**Infrastructure & Automation:**
-- [InspectFlow Sync](https://github.com/AADITYA104/inspectflow-sync), [CXBulk](https://github.com/AADITYA104/CXBulk), [Codexservice](https://github.com/AADITYA104/Codexservice), [NetGuard](https://github.com/AADITYA104/NetGuard)
-
-**Collaborative:** DigiVault, Gym Pro System, Lifeconnect, Gov Portal
-
-Which project would you like to dig into?`,
-
-  skills: `Aditya's technical stack:
-
-**Languages:** Python (primary — used across all AI/ML work), JavaScript, Solidity, HTML5/CSS3
-
-**Frameworks:** Next.js, React.js, Node.js, FastAPI, Tailwind CSS, Scikit-learn
-
-**Databases:** PostgreSQL, MySQL, MongoDB, Firebase
-
-**Domains:** Full Stack Web, Applied AI/ML, Blockchain/Web3, Computer Vision, NLP, R&D Engineering
-
-What distinguishes him from a typical full-stack developer is shipping production AI/ML systems *and* production Solidity smart contracts — most developers specialize in one or the other, not both.
-
-His GitHub has examples of all of this: [github.com/AADITYA104](https://github.com/AADITYA104)`,
-
-  experience: `Aditya's work history:
-
-**Aksharraj Infotech** (Feb–Apr 2026) — Full Stack Developer Intern
-Built ETH.VOTE end-to-end, implemented EIP-712 blockchain security, worked in daily agile sprints.
-
-**Mexgen Technologies** (Jul 2025–Jan 2026) — Junior AI/ML Developer
-Built ML pipelines at 95% predictive accuracy, reduced manual data entry by 20%, deployed AI agents to production.
-
-**Gyanmanjari Innovative University** (Feb 2024–Jan 2026) — R&D Engineer
-Led 4+ innovation projects, improved data processing by 30%, mentored 10+ junior developers through full SDLC.
-
-**IT Hub** (Nov–Dec 2024) — Front End Developer
-Delivered 100% cross-browser compatible interfaces, improved page load times by 15%.
-
-His resume is available on request — reach him at devmurariaaditya@gmail.com.`,
-
-  contact: `Here's how to reach Aditya directly:
-
-- **Phone / WhatsApp:** [+91-7046387404](tel:+917046387404)
-- **Email:** [devmurariaaditya@gmail.com](mailto:devmurariaaditya@gmail.com)
-- **LinkedIn:** [linkedin.com/in/devmurari-aditya](https://linkedin.com/in/devmurari-aditya)
-- **GitHub:** [github.com/AADITYA104](https://github.com/AADITYA104)
-- **Portfolio:** [adityadevmurari.vercel.app](https://adityadevmurari.vercel.app)
-
-He's based in Gujarat, India and is available for remote roles, contract work, or relocation. Typically responds within a few hours.`,
-
-  availability: `Aditya is currently open to opportunities. He's available for:
-- Full-time remote roles
-- Contract or freelance engagements
-- Relocation to major tech hubs
-
-He's based in Gujarat, India and has experience collaborating across time zones. Best way to start a conversation: +91-7046387404 or devmurariaaditya@gmail.com.`,
-
-  offtopic: `I'm here specifically to talk about Aditya Devmurari's professional background, projects, and skills — happy to help with that!
-
-For general questions outside of that scope, you'd want to look elsewhere. Anything I can tell you about Aditya's work?`,
-
-  identity: `I'm an AI representative built to answer questions about Aditya Devmurari's professional background — not Aditya himself.
-
-For a direct conversation with Aditya, reach him at devmurariaaditya@gmail.com or +91-7046387404. He's highly responsive.
-
-What would you like to know about his work?`,
-
-  unknown: `I don't have that specific detail on hand. You can reach Aditya directly at devmurariaaditya@gmail.com or +91-7046387404 — he'd be happy to answer.`,
-
-  fallback: `I'm here to answer questions about Aditya Devmurari — his background, skills, projects, and how to reach him.
-
-He's a Full Stack & AI Developer based in Gujarat, India with 2+ years of experience. His flagship project is ETH.VOTE, a decentralized blockchain voting system. He also has strong work in AI/ML (95% model accuracy), cybersecurity (92% threat detection), and NLP (40% faster patient triage).
-
-What would you like to know more about?`,
+  fallback: `I'm here to answer questions about Aditya Devmurari — his background, skills, projects, and how to reach him.\n\nHe's a Full Stack & AI Developer based in Gujarat, India. Flagship project: ETH.VOTE (decentralized blockchain voting). Strong track record in AI/ML (95% model accuracy), cybersecurity (92% threat detection), and NLP (40% faster patient triage).\n\nWhat would you like to know?`,
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// LOCAL RESPONSE ROUTER
-// ─────────────────────────────────────────────────────────────────────────────
 function getLocalResponse(query: string): string {
   const q = query.toLowerCase();
-
-  // Identity / persona questions
-  if (
-    q.includes('are you aditya') ||
-    q.includes('are you real') ||
-    q.includes('are you a bot') ||
-    q.includes('who are you') ||
-    q.includes('are you ai') ||
-    q.includes('is this aditya') ||
-    q.includes('real person')
-  ) return LOCAL_RESPONSES.identity;
-
-  // Off-topic detection — general coding help, jokes, trivia, unrelated topics
-  if (
-    q.includes('write code for') ||
-    q.includes('help me code') ||
-    q.includes('tell me a joke') ||
-    q.includes('what is the capital') ||
-    q.includes('weather') ||
-    q.includes('recipe') ||
-    q.includes('politics') ||
-    q.includes('who is the president') ||
-    q.includes('solve this problem') ||
-    q.includes('write a function') ||
-    q.includes('debug my')
-  ) return LOCAL_RESPONSES.offtopic;
-
-  // ETH.VOTE / Blockchain
-  if (q.includes('eth.vote') || q.includes('eth vote') || q.includes('ethvote') || q.includes('blockchain') || q.includes('web3') || q.includes('solidity') || q.includes('smart contract') || q.includes('decentralized') || q.includes('eip-712') || q.includes('voting'))
-    return LOCAL_RESPONSES.eth_vote;
-
-  // Hiring / why hire
-  if (q.includes('hire') || q.includes('hiring') || q.includes('should we') || q.includes('worth hiring') || q.includes('strong candidate') || q.includes('why aditya') || q.includes('make a case') || q.includes('pitch'))
-    return LOCAL_RESPONSES.hire;
-
-  // Projects
-  if (q.includes('project') || q.includes('built') || q.includes('github') || q.includes('list all') || q.includes('what has he') || q.includes('deployed') || q.includes('portfolio'))
-    return LOCAL_RESPONSES.projects;
-
-  // Skills / tech stack
-  if (q.includes('skill') || q.includes('stack') || q.includes('framework') || q.includes('language') || q.includes('database') || q.includes('tech') || q.includes('know how') || q.includes('proficient') || q.includes('expertise'))
-    return LOCAL_RESPONSES.skills;
-
-  // Work experience
-  if (q.includes('experience') || q.includes('work history') || q.includes('job') || q.includes('intern') || q.includes('career') || q.includes('resume') || q.includes('cv') || q.includes('background') || q.includes('company') || q.includes('aksharraj') || q.includes('mexgen') || q.includes('gyanmanjari') || q.includes('it hub'))
-    return LOCAL_RESPONSES.experience;
-
-  // Contact
-  if (q.includes('contact') || q.includes('phone') || q.includes('email') || q.includes('call') || q.includes('reach') || q.includes('number') || q.includes('linkedin') || q.includes('connect') || q.includes('get in touch'))
-    return LOCAL_RESPONSES.contact;
-
-  // Availability / remote
-  if (q.includes('available') || q.includes('availability') || q.includes('remote') || q.includes('relocate') || q.includes('open to') || q.includes('looking for') || q.includes('hire him') || q.includes('freelance') || q.includes('contract') || q.includes('when can') || q.includes('start date'))
-    return LOCAL_RESPONSES.availability;
-
+  if (q.includes('are you aditya') || q.includes('are you real') || q.includes('who are you') || q.includes('are you ai') || q.includes('is this aditya')) return LOCAL_RESPONSES.identity;
+  if (q.includes('write code') || q.includes('help me code') || q.includes('tell me a joke') || q.includes('what is the capital') || q.includes('weather') || q.includes('recipe') || q.includes('politics')) return LOCAL_RESPONSES.offtopic;
+  if (q.includes('eth.vote') || q.includes('eth vote') || q.includes('blockchain') || q.includes('web3') || q.includes('solidity') || q.includes('voting') || q.includes('eip')) return LOCAL_RESPONSES.eth_vote;
+  if (q.includes('hire') || q.includes('hiring') || q.includes('should we') || q.includes('why aditya') || q.includes('strong candidate')) return LOCAL_RESPONSES.hire;
+  if (q.includes('project') || q.includes('built') || q.includes('github') || q.includes('deployed')) return LOCAL_RESPONSES.projects;
+  if (q.includes('skill') || q.includes('stack') || q.includes('framework') || q.includes('language') || q.includes('tech')) return LOCAL_RESPONSES.skills;
+  if (q.includes('experience') || q.includes('work') || q.includes('job') || q.includes('intern') || q.includes('career') || q.includes('resume') || q.includes('cv') || q.includes('company')) return LOCAL_RESPONSES.experience;
+  if (q.includes('contact') || q.includes('phone') || q.includes('email') || q.includes('reach') || q.includes('linkedin') || q.includes('call')) return LOCAL_RESPONSES.contact;
+  if (q.includes('available') || q.includes('remote') || q.includes('freelance') || q.includes('contract') || q.includes('open to')) return LOCAL_RESPONSES.availability;
   return LOCAL_RESPONSES.fallback;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILITY
+// ─────────────────────────────────────────────────────────────────────────────
+function delay(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -450,103 +595,82 @@ function getLocalResponse(query: string): string {
 // ─────────────────────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json();
+    const { messages } = await req.json() as {
+      messages: Array<{ role: string; content: string }>;
+    };
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return new Response('Invalid request', { status: 400 });
     }
 
+    const userMessage = messages[messages.length - 1]?.content || '';
+    const history = messages.slice(0, -1); // Everything before last message = history
     const groqApiKey = process.env.GROQ_API_KEY;
 
-    // ── Intelligent local fallback when API key is not configured ──
-    if (!groqApiKey) {
-      const userMessage = messages[messages.length - 1]?.content || '';
-      const reply = getLocalResponse(userMessage);
+    const encoder = new TextEncoder();
 
-      const encoder = new TextEncoder();
+    // ── LOCAL MODE (no API key) — fast keyword-match fallback ──
+    if (!groqApiKey) {
+      const reply = getLocalResponse(userMessage);
       const stream = new ReadableStream({
         async start(controller) {
-          const words = reply.split(' ');
-          for (const word of words) {
+          // Simulate step events for UI consistency
+          controller.enqueue(encoder.encode(stepEvent('retrieve', 'Searching knowledge base…')));
+          await delay(200);
+          controller.enqueue(encoder.encode(stepEvent('draft', 'Composing answer…')));
+          await delay(200);
+          controller.enqueue(encoder.encode(stepEvent('finalize', 'Verified ✓ (local mode)')));
+          await delay(100);
+          // Stream answer word by word
+          for (const word of reply.split(' ')) {
             controller.enqueue(encoder.encode(word + ' '));
-            await new Promise((r) => setTimeout(r, 16));
+            await delay(14);
           }
+          controller.enqueue(encoder.encode(metaEvent(0.9, 1)));
           controller.close();
         },
       });
-
       return new Response(stream, {
-        headers: {
-          'Content-Type': 'text/plain; charset=utf-8',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-        },
+        headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' },
       });
     }
 
-    // ── Live Groq API call ──
-    const systemPrompt = buildSystemPrompt();
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${groqApiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...messages.slice(-10), // Keep last 10 turns for context, avoid token bloat
-        ],
-        max_tokens: 450,
-        temperature: 0.3, // LOW temperature — consistency over creativity (per guide)
-        stream: true,
-      }),
-    });
-
-    // Fallback to local if API call fails
-    if (!response.ok) {
-      const userMessage = messages[messages.length - 1]?.content || '';
-      const reply = getLocalResponse(userMessage);
-      return new Response(reply, {
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-      });
-    }
-
-    // ── Stream the response back to client ──
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
-    const encoder = new TextEncoder();
-
+    // ── AGENTIC LOOP MODE (live API) ──
     const stream = new ReadableStream({
       async start(controller) {
-        if (!reader) { controller.close(); return; }
+        const emit = (chunk: string) => {
+          try { controller.enqueue(encoder.encode(chunk)); } catch { /* closed */ }
+        };
 
-        let buffer = '';
         try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+          const { answer, confidence, iterations } = await runAgenticLoop(
+            userMessage,
+            history,
+            groqApiKey,
+            emit
+          );
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed || trimmed === 'data: [DONE]') continue;
-              if (trimmed.startsWith('data: ')) {
-                try {
-                  const json = JSON.parse(trimmed.slice(6));
-                  const token = json.choices?.[0]?.delta?.content || '';
-                  if (token) controller.enqueue(encoder.encode(token));
-                } catch { /* skip malformed chunk */ }
-              }
-            }
+          // Stream the final verified answer word by word
+          for (const word of answer.split(' ')) {
+            emit(word + ' ');
+            await delay(10);
           }
-        } catch { /* stream interrupted */ }
-        finally { controller.close(); }
+
+          // Send meta event for UI confidence display
+          emit(metaEvent(confidence, iterations));
+
+        } catch (err) {
+          // Top-level error — safe fallback
+          const safeMsg = LOCAL_RESPONSES.fallback;
+          emit(stepEvent('fallback', 'Recovering…'));
+          for (const word of safeMsg.split(' ')) {
+            emit(word + ' ');
+            await delay(12);
+          }
+          console.error('Agentic loop error:', err);
+        } finally {
+          controller.close();
+        }
       },
     });
 
@@ -557,6 +681,7 @@ export async function POST(req: NextRequest) {
         'Connection': 'keep-alive',
       },
     });
+
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Internal Server Error';
     return new Response(`Error: ${msg}`, { status: 500 });

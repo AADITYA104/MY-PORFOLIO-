@@ -316,34 +316,51 @@ ${state.context}`;
     parts: [{ text: m.content }]
   }));
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+  let draft = '';
+  const models = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [
-        ...historyMapped,
-        {
-          role: 'user',
-          parts: [{ text: state.query }]
-        }
-      ],
-      systemInstruction: {
-        parts: [{ text: systemPrompt }]
-      },
-      generationConfig: {
-        temperature: isRetry ? 0.25 : 0.45, // Slightly higher default temp for creative psychology
-        maxOutputTokens: 600
+  for (const model of models) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            ...historyMapped,
+            {
+              role: 'user',
+              parts: [{ text: state.query }]
+            }
+          ],
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          generationConfig: {
+            temperature: isRetry ? 0.25 : 0.45,
+            maxOutputTokens: 2500
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        draft = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (draft) break; // Found a valid response!
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.warn(`Model ${model} returned error status: ${response.status}`, errorData);
       }
-    })
-  });
+    } catch (err) {
+      console.warn(`Fetch error for model ${model}:`, err);
+    }
+  }
 
-  if (!response.ok) throw new Error(`Draft Gemini API error: ${response.status}`);
-  const data = await response.json();
-  const draft = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  if (!draft) {
+    throw new Error("All Gemini models failed to generate content.");
+  }
 
   return {
     draftResponse: draft,
@@ -388,40 +405,54 @@ Respond ONLY with valid JSON matching this schema:
   "critique": "actionable feedback if confidence_score < 0.82, else 'Verified.'"
 }`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+  let rawContent = '';
+  const models = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: verifierPrompt }]
-        }
-      ],
-      generationConfig: {
-        temperature: 0.1,
-        maxOutputTokens: 250,
-        responseMimeType: "application/json"
+  for (const model of models) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: verifierPrompt }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 800,
+            responseMimeType: "application/json"
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (rawContent) break; // Found a valid response!
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.warn(`Verifier model ${model} returned error status: ${response.status}`, errorData);
       }
-    })
-  });
-
-  if (!response.ok) {
-    return { verifierScore: 0.85, verifierFeedback: 'Verifier unavailable — passing.', loopStep: 'finalize' };
+    } catch (err) {
+      console.warn(`Fetch error for verifier model ${model}:`, err);
+    }
   }
 
-  const data = await response.json();
-  const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-
   let result: VerifierOutput;
-  try {
-    result = JSON.parse(rawContent) as VerifierOutput;
-  } catch {
-    result = { is_accurate: true, confidence_score: 0.82, critique: 'Parse error — passing.' };
+  if (rawContent) {
+    try {
+      result = JSON.parse(rawContent) as VerifierOutput;
+    } catch {
+      result = { is_accurate: true, confidence_score: 0.82, critique: 'Parse error — passing.' };
+    }
+  } else {
+    result = { is_accurate: true, confidence_score: 0.85, critique: 'All verifiers unavailable — passing.' };
   }
 
   const score = Math.min(1.0, Math.max(0.0, result.confidence_score ?? 0.5));

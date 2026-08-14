@@ -4,19 +4,25 @@ import { useState, useEffect, useRef } from 'react';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
+// Suggestions cover all visitor types: recruiter, collaborator, casual browser
 const ALL_SUGGESTIONS = [
   "Why should we hire Aditya?",
   "Tell me about ETH.VOTE, his flagship project.",
-  "What's his experience in AI and machine learning?",
-  "How can I contact Aditya directly?",
+  "What's his AI/ML experience?",
+  "How do I contact him directly?",
   "What's his full tech stack?",
-  "Tell me about his work experience.",
-  "What projects has he built?",
-  "Is he open to remote roles?",
+  "Walk me through his work history.",
+  "What projects has he shipped?",
+  "Is he open to remote or freelance work?",
+  "What makes him different from other developers?",
+  "Tell me about his blockchain work.",
+  "What's his strongest domain?",
+  "Is he available right now?",
 ];
 
+// Clear persona boundary from the first message
 const WELCOME_MSG =
-  "Hey! I'm Aditya Devmurari's AI representative — here to answer any questions about his background, skills, and projects. What would you like to know?";
+  "Hi — I'm an AI representative for Aditya Devmurari, not Aditya himself. I can tell you about his background, projects, tech stack, work history, and how to reach him. What would you like to know?";
 
 export default function AIAgentPage() {
   const [messages, setMessages] = useState<Message[]>([

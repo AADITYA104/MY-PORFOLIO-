@@ -39,7 +39,7 @@ const ALL_SUGGESTIONS = [
 ];
 
 const WELCOME_MSG =
-  "Hi — I'm Aditya's AI representative, not Aditya himself. Ask me anything about his background, projects, skills, or how to reach him.";
+  "Hi! I'm Sanju — Aditya's AI representative and companion. Ask me anything about his projects, engineering experience, skills, or how to get in touch with him!";
 
 // ─── Stream Protocol Parser ───────────────────────────────────────────────────
 // __STEP__{json} → loop status
@@ -228,10 +228,11 @@ function AvatarAD({ size = 'sm', activeStep }: { size?: 'sm' | 'md'; activeStep?
     <div 
       className={`${s} rounded-xl bg-gradient-to-tr from-indigo-600/30 to-amber-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0 relative`}
       style={{ '--ring-color': color } as React.CSSProperties}
+      title="Sanju · Aditya's AI"
     >
       <div className="live-ring" />
       <div className="live-ring" style={{ animationDelay: '1.4s' }} />
-      <span className="font-display font-bold text-indigo-300 relative z-10">AD</span>
+      <span className="font-display font-bold text-indigo-300 relative z-10">SJ</span>
     </div>
   );
 }
@@ -344,7 +345,7 @@ export default function AIAgentPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      document.title = "Aditya Devmurari | AI Representative Chatbot";
+      document.title = "Sanju | Aditya Devmurari's AI Representative";
     }
     const t = setTimeout(() => setMounted(true), 80);
     return () => clearTimeout(t);
@@ -488,11 +489,11 @@ export default function AIAgentPage() {
           <div>
             <p className="font-display font-semibold text-[15px] tracking-tight text-white">Aditya Devmurari</p>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="font-mono text-[10px] text-gray-500 uppercase tracking-widest">Agentic AI</span>
+              <span className="font-mono text-[10px] text-indigo-400 font-semibold uppercase tracking-wider">Sanju (AI)</span>
               <span className="text-gray-700">·</span>
-              <span className="flex items-center gap-1 font-mono text-[10px] text-indigo-400 uppercase tracking-widest">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                Loop Active
+              <span className="flex items-center gap-1 font-mono text-[10px] text-emerald-400 uppercase tracking-widest">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live Agent
               </span>
             </div>
           </div>
@@ -526,12 +527,12 @@ export default function AIAgentPage() {
           <div className="mt-auto pt-10 pb-6 text-center" style={{ animation: 'fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both' }}>
             <div className="inline-flex items-center gap-2 font-mono text-[10px] text-indigo-400 uppercase tracking-[0.2em] mb-5 px-3 py-1.5 border border-indigo-500/20 rounded-full bg-indigo-500/5">
               <span className="w-1 h-1 rounded-full bg-indigo-400 animate-pulse" />
-              Agentic Loop · Retrieve → Draft → Verify
+              Meet Sanju · Agentic AI Loop
             </div>
             <h1 className="font-display font-bold text-4xl md:text-5xl tracking-tight text-white mb-3 leading-[1.1]">
-              Ask Aditya&apos;s<br />
+              Ask Sanju<br />
               <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(135deg, #6366f1 0%, #a78bfa 40%, #f59e0b 100%)' }}>
-                AI anything.
+                Aditya&apos;s AI Representative.
               </span>
             </h1>
             <p className="text-sm text-gray-400 max-w-sm mx-auto font-body leading-relaxed">

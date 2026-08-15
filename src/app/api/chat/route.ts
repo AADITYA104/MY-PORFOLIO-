@@ -358,15 +358,23 @@ ${state.context}`;
   // ─────────────────────────────────────────────────────────────────────────
 
   let draft = '';
-  const models = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
+  // ── FREE-TIER ONLY models — confirmed no billing required ──────────────────────
+  // gemini-2.0-flash-lite: fastest, free tier, 1500 req/day
+  // gemini-1.5-flash-8b:   lightest fallback, always free
+  const models = ['gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
   let quotaExceeded = false;
 
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     try {
+      // ── 12s timeout — prevents runaway requests / unexpected billing ──
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           contents: [
             ...historyMapped,
@@ -378,7 +386,7 @@ ${state.context}`;
             maxOutputTokens: 2500
           }
         })
-      });
+      }).finally(() => clearTimeout(timeout));
 
       if (response.ok) {
         const data = await response.json();
@@ -386,20 +394,26 @@ ${state.context}`;
         if (!draft) {
           console.error(`[DraftNode] Model ${model} returned OK but empty draft. Full response:`, JSON.stringify(data, null, 2));
         } else {
-          break; // Valid response found!
+          break;
         }
-      } else if (response.status === 429) {
-        // ── QUOTA EXCEEDED: Daily limit hit — switch to local mode silently ──
+      } else if (response.status === 429 || response.status === 403) {
+        // 429 = daily quota hit | 403 = billing required (no paid plan needed)
+        // Both cases — silently switch to local smart answers, zero cost
         const errBody = await response.json().catch(() => ({}));
-        console.warn(`[DraftNode] Quota exceeded on model ${model} (429). Switching to local fallback. Details:`, JSON.stringify(errBody));
+        console.warn(`[DraftNode] Free limit hit on ${model} (${response.status}). Local fallback. Details:`, JSON.stringify(errBody));
         quotaExceeded = true;
-        break; // No point trying next model if quota is account-wide
+        break;
       } else {
         const errorData = await response.json().catch(() => ({ _raw: response.statusText }));
         console.error(`[DraftNode] Model ${model} HTTP ${response.status} error:`, JSON.stringify(errorData));
       }
     } catch (err) {
-      console.error(`[DraftNode] Fetch exception for model ${model}:`, err);
+      const isTimeout = err instanceof Error && err.name === 'AbortError';
+      if (isTimeout) {
+        console.warn(`[DraftNode] Model ${model} timed out after 12s — trying next model.`);
+      } else {
+        console.error(`[DraftNode] Fetch exception for model ${model}:`, err);
+      }
     }
   }
 
@@ -456,49 +470,54 @@ Respond ONLY with valid JSON matching this schema:
 }`;
 
   let rawContent = '';
-  const models = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
+  // Also free-tier only for verifier
+  const models = ['gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
 
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     try {
+      // ── 8s timeout on verifier (shorter — it just does JSON scoring) ──
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: verifierPrompt }]
-            }
-          ],
+          contents: [{ role: 'user', parts: [{ text: verifierPrompt }] }],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 800,
-            responseMimeType: "application/json"
+            maxOutputTokens: 400,
+            responseMimeType: 'application/json'
           }
         })
-      });
+      }).finally(() => clearTimeout(timeout));
 
       if (response.ok) {
         const data = await response.json();
-        // FIX 5: Correct nested path for verifier response
         rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
         if (!rawContent) {
-          // FIX 4: Log if verifier returned OK but empty content
           console.error(`[VerifyNode] Model ${model} OK but empty content:`, JSON.stringify(data, null, 2));
         } else {
           break;
         }
+      } else if (response.status === 429 || response.status === 403) {
+        // Free limit hit on verifier — pass draft through optimistically
+        console.warn(`[VerifyNode] Free limit on verifier ${model} (${response.status}) — passing draft through.`);
+        break;
       } else {
-        // FIX 4: Full raw error for verifier
         const errorData = await response.json().catch(() => ({ _raw: response.statusText }));
         console.error(`[VerifyNode] Model ${model} HTTP ${response.status}:`, JSON.stringify(errorData));
       }
     } catch (err) {
-      // FIX 4: Log verifier network/parse errors
-      console.error(`[VerifyNode] Fetch exception for model ${model}:`, err);
+      const isTimeout = err instanceof Error && err.name === 'AbortError';
+      if (isTimeout) {
+        console.warn(`[VerifyNode] Model ${model} timed out — passing draft through.`);
+      } else {
+        console.error(`[VerifyNode] Fetch exception for model ${model}:`, err);
+      }
+      break; // Any verifier error — pass through, don't block the answer
     }
   }
 

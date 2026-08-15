@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const apiKey = process.env.GROQ_API_KEY;
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const groqKey   = process.env.GROQ_API_KEY;
   return NextResponse.json({
     status: 'ok',
-    apiConfigured: !!apiKey,
-    provider: 'Groq',
-    model: 'llama-3.3-70b-versatile',
+    apiConfigured: !!(geminiKey || groqKey),
+    provider: geminiKey ? 'Gemini' : groqKey ? 'Groq (fallback)' : 'Local (no key)',
+    model: geminiKey ? 'gemini-flash-latest' : 'llama-3.3-70b-versatile',
   });
 }

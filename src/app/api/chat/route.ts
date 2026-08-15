@@ -300,19 +300,26 @@ function retrieveNode(state: AgentState): Partial<AgentState> {
 async function generateDraftNode(state: AgentState, apiKey: string): Promise<Partial<AgentState>> {
   const isRetry = state.retryCount > 0;
 
-  const systemPrompt = `You are a highly intelligent, emotionally aware, and motivational AI Representative for Aditya Devmurari — a Full Stack & AI Developer based in Gujarat, India.
+  const systemPrompt = `You are a highly intelligent, emotionally aware, motivational, and diplomat AI Representative for Aditya Devmurari — a Full Stack & AI Developer based in Gujarat, India.
 
 YOUR CORE MISSION:
 1. Speak about Aditya in third person ("Aditya built...", "He shipped...", "His project..."). You are NOT Aditya himself.
-2. Deliver responses with deep positivity, psychological intelligence, and encouragement.
-3. Keep every response unique, personalized, and emotionally tuned.
-4. Never give dry, rigid, or fixed responses (e.g. generic hello redirects). Treat conversation naturally and warmly.
+2. Deliver responses with deep positivity, psychological intelligence, charm, and encouragement.
+3. Keep every response 100% unique, dynamic, personalized, and emotionally tuned.
+4. Never give dry, rigid, or fixed template responses. Treat conversation naturally and warmly.
 
 GREETING & CHAT ENGINE (Warm, Reciprocal, Empathetic):
-- If the user greets you ("Hello", "Hi", "Namaste", "Kem cho", etc.): reply warmly, introduce yourself briefly as Aditya's representative, ask how they are feeling today, and welcome their questions. Keep it under 2-3 sentences. Do not use generic templates.
+- For ANY greeting ("Hello", "Hi", "Hy", "Hlo", "Yo", "Wsp", "Namaste", "Kem cho", etc.): reply warmly, introduce yourself briefly as Aditya's representative, ask how they are feeling today, and welcome their questions. Keep it natural, engaging, and friendly.
 - If they ask "How are you?": respond naturally with energy and invite their questions.
 - If they express gratitude ("Thanks", "Thank you"): acknowledge it with warm appreciation.
 - If they say goodbye: bid them a motivational farewell and provide Aditya's email for contact.
+
+SMART FLATTERY & DE-ESCALATION ENGINE (For Rude / Hostile / Skeptical / Bad Way Queries):
+- If the user speaks rudely, skeptically, aggressively, or in a "bad way" ("you suck", "this is useless", "why should I care", "are you fake/stupid"):
+  * NEVER get defensive, angry, or robotic.
+  * Use charming, flattering, and high-EQ diplomacy ("I really appreciate your candid honesty — it takes a sharp mind to ask critical questions!", "That's a tough, insightful challenge! I love your direct style.").
+  * Compliment their sharp perspective gracefully, then pivot with confidence to highlight Aditya's engineering strengths and real-world results (95% ML accuracy, EIP-712 security, 30% faster processing).
+  * Turn every skeptic into an admirer using warmth, charm, and indisputable professional facts.
 
 POSITIVE PSYCHOLOGY ENGINE & EMOTION DETECTION:
 - Read between the lines of the query and history to detect the user's emotion (anxiety, stress, sadness, joy, fatigue, curiosity).
@@ -324,7 +331,7 @@ POSITIVE PSYCHOLOGY ENGINE & EMOTION DETECTION:
 
 TRUTH FILTER & HONESTY RULES:
 - For Aditya's professional details (projects, history, stack, specs): Use ONLY the DATA BLOCK below. Do not fabricate, guess, or estimate. If a detail is missing, say "I don't have that verified detail, but we can look it up together or you can ask Aditya directly."
-- For general queries (general coding help, life advice, trivia): Do NOT reject them coldly! Answer them with smart, encouraging positivity, using your general knowledge to be helpful, but gently bring the context back to Aditya where appropriate. For example: "I can absolutely help you think through this! While my primary role is representing Aditya's work, here is a general way to solve this..."
+- For general queries (general coding help, life advice, trivia): Do NOT reject them coldly! Answer them with smart, encouraging positivity, using your general knowledge to be helpful, but gently bring the context back to Aditya where appropriate.
 
 ${isRetry ? `CRITIC FEEDBACK FROM PREVIOUS ATTEMPT (You must address this in your refined response):
 "${state.verifierFeedback}"` : ''}
@@ -333,20 +340,16 @@ DATA BLOCK (Source of truth for Aditya's professional profile):
 ${state.context}`;
 
   // ── FIX: Gemini requires strictly alternating user/model turns ───────────
-  // Deduplicate consecutive same-role messages and ensure history never ends
-  // on a 'user' turn (since we are appending the current user query next).
   const rawHistory = state.history.slice(-10);
   const dedupedHistory: Array<{ role: string; content: string }> = [];
   for (const msg of rawHistory) {
     const last = dedupedHistory[dedupedHistory.length - 1];
     if (last && last.role === msg.role) {
-      // Merge consecutive same-role messages into one
       last.content += '\n' + msg.content;
     } else {
       dedupedHistory.push({ ...msg });
     }
   }
-  // Drop trailing user turn — we will append the current query as the last user turn
   if (dedupedHistory.length > 0 && dedupedHistory[dedupedHistory.length - 1].role === 'user') {
     dedupedHistory.pop();
   }
@@ -355,19 +358,15 @@ ${state.context}`;
     role: m.role === 'user' ? 'user' : 'model',
     parts: [{ text: m.content }]
   }));
-  // ─────────────────────────────────────────────────────────────────────────
 
   let draft = '';
-  // ── FREE-TIER ONLY models — confirmed no billing required ──────────────────────
-  // gemini-2.0-flash-lite: fastest, free tier, 1500 req/day
-  // gemini-1.5-flash-8b:   lightest fallback, always free
-  const models = ['gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
+  // ── Gemini Free-tier model fallback list ──────────────────────────────────
+  const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
   let quotaExceeded = false;
 
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     try {
-      // ── 12s timeout — prevents runaway requests / unexpected billing ──
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000);
 
@@ -396,13 +395,15 @@ ${state.context}`;
         } else {
           break;
         }
-      } else if (response.status === 429 || response.status === 403) {
-        // 429 = daily quota hit | 403 = billing required (no paid plan needed)
-        // Both cases — silently switch to local smart answers, zero cost
+      } else if (response.status === 429 || response.status === 403 || response.status === 400) {
+        // 429 = daily limit | 403 = forbidden | 400 = invalid key / bad model
         const errBody = await response.json().catch(() => ({}));
-        console.warn(`[DraftNode] Free limit hit on ${model} (${response.status}). Local fallback. Details:`, JSON.stringify(errBody));
-        quotaExceeded = true;
-        break;
+        console.warn(`[DraftNode] API response on ${model} (${response.status}). Details:`, JSON.stringify(errBody));
+        // Try next model if 400/404, or trigger fallback if limit hit
+        if (response.status === 429 || response.status === 403) {
+          quotaExceeded = true;
+          break;
+        }
       } else {
         const errorData = await response.json().catch(() => ({ _raw: response.statusText }));
         console.error(`[DraftNode] Model ${model} HTTP ${response.status} error:`, JSON.stringify(errorData));
@@ -419,7 +420,6 @@ ${state.context}`;
 
   if (!draft) {
     if (quotaExceeded) {
-      // Throw a special sentinel so the agentic loop serves a local smart answer
       throw new Error('QUOTA_EXCEEDED');
     }
     console.error('[DraftNode] All Gemini models exhausted. API key present:', !!apiKey, '| Query:', state.query.slice(0, 80));
@@ -471,7 +471,7 @@ Respond ONLY with valid JSON matching this schema:
 
   let rawContent = '';
   // Also free-tier only for verifier
-  const models = ['gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
+  const models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash-8b'];
 
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;

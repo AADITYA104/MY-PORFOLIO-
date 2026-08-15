@@ -267,8 +267,29 @@ function retrieveNode(state: AgentState): Partial<AgentState> {
   if (!chunks.some(c => c.startsWith('CONTACT')))
     chunks.push(`CONTACT: ${JSON.stringify(kb.contact)}`);
 
+  // ── FIX 6: Context length guard ──────────────────────────────────────────
+  // If the raw context is too large (>6000 chars), replace full PROJECTS JSON
+  // with a compact summary to stay well within Gemini's token budget.
+  // This prevents empty/truncated responses caused by oversized prompts.
+  let contextStr = chunks.join('\n\n');
+  if (contextStr.length > 6000) {
+    console.warn(`[RetrieveNode] Context too large (${contextStr.length} chars) — trimming PROJECTS to summary.`);
+    const trimmedChunks = chunks.map(chunk => {
+      if (chunk.startsWith('PROJECTS:')) {
+        const summary = kb.projects
+          .map(p => `${p.name} (${p.category}): ${p.outcome} | GitHub: ${p.github}`)
+          .join(' || ');
+        return `PROJECTS_SUMMARY: ${summary}`;
+      }
+      return chunk;
+    });
+    contextStr = trimmedChunks.join('\n\n');
+    console.info(`[RetrieveNode] Trimmed context length: ${contextStr.length} chars.`);
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   return {
-    context: chunks.join('\n\n'),
+    context: contextStr,
     loopStep: 'draft',
   };
 }
@@ -311,10 +332,30 @@ ${isRetry ? `CRITIC FEEDBACK FROM PREVIOUS ATTEMPT (You must address this in you
 DATA BLOCK (Source of truth for Aditya's professional profile):
 ${state.context}`;
 
-  const historyMapped = state.history.slice(-8).map(m => ({
+  // ── FIX: Gemini requires strictly alternating user/model turns ───────────
+  // Deduplicate consecutive same-role messages and ensure history never ends
+  // on a 'user' turn (since we are appending the current user query next).
+  const rawHistory = state.history.slice(-10);
+  const dedupedHistory: Array<{ role: string; content: string }> = [];
+  for (const msg of rawHistory) {
+    const last = dedupedHistory[dedupedHistory.length - 1];
+    if (last && last.role === msg.role) {
+      // Merge consecutive same-role messages into one
+      last.content += '\n' + msg.content;
+    } else {
+      dedupedHistory.push({ ...msg });
+    }
+  }
+  // Drop trailing user turn — we will append the current query as the last user turn
+  if (dedupedHistory.length > 0 && dedupedHistory[dedupedHistory.length - 1].role === 'user') {
+    dedupedHistory.pop();
+  }
+
+  const historyMapped = dedupedHistory.map(m => ({
     role: m.role === 'user' ? 'user' : 'model',
     parts: [{ text: m.content }]
   }));
+  // ─────────────────────────────────────────────────────────────────────────
 
   let draft = '';
   const models = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
@@ -347,19 +388,29 @@ ${state.context}`;
 
       if (response.ok) {
         const data = await response.json();
+        // FIX 5: Access correct nested response path: candidates[0].content.parts[0].text
         draft = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        if (draft) break; // Found a valid response!
+        // FIX 4: Log raw API response structure if draft is empty (helps diagnose silent failures)
+        if (!draft) {
+          console.error(`[DraftNode] Model ${model} returned OK but empty draft. Full response:`, JSON.stringify(data, null, 2));
+        } else {
+          break; // Found a valid response!
+        }
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.warn(`Model ${model} returned error status: ${response.status}`, errorData);
+        // FIX 4: Log full raw error body — reveals safety filters, quota limits, wrong model names
+        const errorData = await response.json().catch(() => ({ _raw: response.statusText }));
+        console.error(`[DraftNode] Model ${model} HTTP ${response.status} error:`, JSON.stringify(errorData));
       }
     } catch (err) {
-      console.warn(`Fetch error for model ${model}:`, err);
+      // FIX 4: Log the actual underlying network/parse error
+      console.error(`[DraftNode] Fetch exception for model ${model}:`, err);
     }
   }
 
   if (!draft) {
-    throw new Error("All Gemini models failed to generate content.");
+    // FIX 4: Surface the actual failure clearly in server logs
+    console.error('[DraftNode] All Gemini models exhausted. API key present:', !!apiKey, '| Query:', state.query.slice(0, 80));
+    throw new Error('All Gemini models failed to generate content.');
   }
 
   return {
@@ -433,14 +484,22 @@ Respond ONLY with valid JSON matching this schema:
 
       if (response.ok) {
         const data = await response.json();
+        // FIX 5: Correct nested path for verifier response
         rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        if (rawContent) break; // Found a valid response!
+        if (!rawContent) {
+          // FIX 4: Log if verifier returned OK but empty content
+          console.error(`[VerifyNode] Model ${model} OK but empty content:`, JSON.stringify(data, null, 2));
+        } else {
+          break;
+        }
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.warn(`Verifier model ${model} returned error status: ${response.status}`, errorData);
+        // FIX 4: Full raw error for verifier
+        const errorData = await response.json().catch(() => ({ _raw: response.statusText }));
+        console.error(`[VerifyNode] Model ${model} HTTP ${response.status}:`, JSON.stringify(errorData));
       }
     } catch (err) {
-      console.warn(`Fetch error for verifier model ${model}:`, err);
+      // FIX 4: Log verifier network/parse errors
+      console.error(`[VerifyNode] Fetch exception for model ${model}:`, err);
     }
   }
 
@@ -547,8 +606,9 @@ async function runAgenticLoop(
 
     try {
       Object.assign(state, await generateDraftNode(state, apiKey));
-    } catch {
-      // Draft failed — go to fallback
+    } catch (err) {
+      // FIX 4: Log the raw draft error before falling back
+      console.error('[AgenticLoop] generateDraftNode threw:', err);
       Object.assign(state, fallbackNode(state));
       break;
     }
@@ -559,8 +619,9 @@ async function runAgenticLoop(
 
     try {
       Object.assign(state, await verifyNode(state, apiKey));
-    } catch {
-      // Verifier failed — pass through optimistically
+    } catch (err) {
+      // FIX 4: Log raw verifier error — pass through optimistically so user still gets an answer
+      console.error('[AgenticLoop] verifyNode threw:', err);
       state.verifierScore = 0.82;
       state.loopStep = 'finalize';
     }

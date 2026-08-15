@@ -360,8 +360,8 @@ ${state.context}`;
   }));
 
   let draft = '';
-  // ── Confirmed working Gemini models for current API version ────────────────
-  const models = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'];
+  // ── Confirmed working Gemini models (gemini-3.5-flash has 200 status on current key) ──────
+  const models = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash'];
   let quotaExceeded = false;
 
   for (const model of models) {
@@ -473,7 +473,7 @@ Respond ONLY with valid JSON matching this schema:
 }`;
 
   let rawContent = '';
-  const models = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-flash-latest'];
+  const models = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash'];
 
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;

@@ -711,37 +711,58 @@ const LOCAL_RESPONSES: Record<string, string> = {
 
   availability: `Aditya is currently open to opportunities:\n- Full-time remote roles\n- Contract or freelance engagements\n- Relocation to major tech hubs\n\nBased in Gujarat, India. Reach him at +91-7046387404 or devmurariaaditya@gmail.com.`,
 
-  offtopic: `I'm here specifically to talk about Aditya Devmurari's professional background and projects — happy to help with that!\n\nFor general questions outside that scope, you'd want to look elsewhere. Anything I can tell you about Aditya's work?`,
+  offtopic: `I can certainly chat with you! While my main focus is representing Aditya Devmurari's work, I'm happy to help. What's on your mind?`,
 
-  identity: `I'm an AI representative built to answer questions about Aditya Devmurari's professional background — not Aditya himself.\n\nFor a direct conversation with Aditya: devmurariaaditya@gmail.com or +91-7046387404.\n\nWhat would you like to know about his work?`,
+  identity: `I'm an AI representative created to share information about Aditya Devmurari's projects, experience, and skills. For direct inquiries with Aditya, feel free to email devmurariaaditya@gmail.com or call +91-7046387404!`,
 
-  greeting: `Hey! Welcome to Aditya's portfolio.\n\nI'm his AI representative — here to tell you about his work, projects, skills, and how to reach him. What would you like to know?`,
+  greeting: `Hey! Welcome to Aditya Devmurari's portfolio. I'm his AI representative — delighted to connect with you today! How are you doing? Feel free to ask me anything about Aditya's projects, skills, or work background.`,
 
-  howAreYou: `Doing well, thanks for asking! Ready to tell you anything about Aditya's work.\n\nWant to know about his projects, tech stack, work experience, or how to reach him?`,
+  howAreYou: `Doing great, thank you for asking! Energized and ready to help. How are you feeling today? What would you like to explore about Aditya's work?`,
 
-  thanks: `Happy to help! If you have more questions about Aditya's background or projects, I'm right here.`,
+  thanks: `You're very welcome! Glad I could help. Let me know if you have any other questions about Aditya's background or projects!`,
 
-  bye: `Goodbye! Feel free to come back if you have more questions about Aditya's work. You can also reach him directly at devmurariaaditya@gmail.com.`,
+  bye: `Goodbye! Wishing you a fantastic day ahead. Feel free to return anytime or reach Aditya directly at devmurariaaditya@gmail.com!`,
 
-  fallback: `I'm here to answer questions about Aditya Devmurari — his background, skills, projects, and how to reach him.\n\nHe's a Full Stack & AI Developer based in Gujarat, India. Flagship project: ETH.VOTE (decentralized blockchain voting). Strong track record in AI/ML (95% model accuracy), cybersecurity (92% threat detection), and NLP (40% faster patient triage).\n\nWhat would you like to know?`,
+  emotionTired: `I hear you. Long days can take a toll, and it's completely okay to feel tired. Make sure to give yourself some well-deserved rest! If there's anything about Aditya's work or projects you'd like to check out at your own pace, I'm here. You've got this!`,
+
+  emotionStuck: `Challenges and code bugs are just stepping stones to breakthroughs! Even seasoned developers like Aditya encounter tough problems (like complex EIP-712 security logic). Take a deep breath, break it into smaller steps, and keep going — you'll figure it out!`,
+
+  fallback: `Hello! Welcome to Aditya Devmurari's portfolio. I am his AI representative, here to share insights about his work as a Full Stack & AI Developer. How can I assist you today? You can ask about his flagship ETH.VOTE project, AI models, skills, or contact info!`,
 };
 
 function getLocalResponse(query: string): string {
   const q = query.toLowerCase().trim();
 
-  // ── Greetings & small talk — must be checked FIRST ──
-  const greetingWords = ['hello', 'hi', 'hey', 'howdy', 'hola', 'namaste', 'kem cho', 'sup', 'what\'s up', 'whatsup', 'good morning', 'good afternoon', 'good evening', 'good night', 'greetings'];
-  if (greetingWords.some(g => q === g || q.startsWith(g + ' ') || q.startsWith(g + '!') || q.startsWith(g + ',')))
+  // ── Greetings & small talk — Comprehensive pattern matching (including hy, hlo, yo, wsp, etc.) ──
+  const greetingWords = [
+    'hello', 'hi', 'hey', 'hy', 'hlo', 'helo', 'hlw', 'heyya', 'yo', 'sup', 'wsp', 'whatsup', 'whats up',
+    'namaste', 'kem cho', 'kemcho', 'hola', 'howdy', 'greetings', 'good morning', 'good afternoon',
+    'good evening', 'good night', 'gm', 'gn', 'ge', 'slm', 'salam', 'ram ram', 'radhe radhe', 'har har mahadev'
+  ];
+
+  if (greetingWords.some(g => q === g || q.startsWith(g + ' ') || q.startsWith(g + '!') || q.startsWith(g + ',') || q.startsWith(g + '?'))) {
     return LOCAL_RESPONSES.greeting;
+  }
 
-  if (q.includes('how are you') || q.includes('how r u') || q.includes('how do you do') || q.includes('kemon acho') || q.includes('kaisa hai') || q.includes('kya haal'))
+  // ── Emotion detection & Positive Psychology ──
+  if (q.includes('tired') || q.includes('exhausted') || q.includes('sleepy') || q.includes('fatigue') || q.includes('burnout')) {
+    return LOCAL_RESPONSES.emotionTired;
+  }
+  if (q.includes('stuck') || q.includes('hard') || q.includes('difficult') || q.includes('confused') || q.includes('struggling') || q.includes('error') || q.includes('bug')) {
+    return LOCAL_RESPONSES.emotionStuck;
+  }
+
+  if (q.includes('how are you') || q.includes('how r u') || q.includes('how do you do') || q.includes('kemon acho') || q.includes('kaisa hai') || q.includes('kya haal') || q.includes('hru')) {
     return LOCAL_RESPONSES.howAreYou;
+  }
 
-  if ((q.includes('thank') || q.includes('thanks') || q.includes('thx') || q.includes('ty ') || q === 'ty') && q.length < 40)
+  if ((q.includes('thank') || q.includes('thanks') || q.includes('thx') || q.includes('ty ') || q === 'ty' || q.includes('thnk')) && q.length < 40) {
     return LOCAL_RESPONSES.thanks;
+  }
 
-  if (q.includes('bye') || q.includes('goodbye') || q.includes('see you') || q.includes('cya') || q.includes('take care') || q.includes('later'))
+  if (q.includes('bye') || q.includes('goodbye') || q.includes('see you') || q.includes('cya') || q.includes('take care') || q.includes('later')) {
     return LOCAL_RESPONSES.bye;
+  }
 
   if (q.includes('are you aditya') || q.includes('are you real') || q.includes('who are you') || q.includes('are you ai') || q.includes('is this aditya')) return LOCAL_RESPONSES.identity;
   if (q.includes('write code') || q.includes('help me code') || q.includes('tell me a joke') || q.includes('what is the capital') || q.includes('weather') || q.includes('recipe') || q.includes('politics')) return LOCAL_RESPONSES.offtopic;
@@ -752,6 +773,7 @@ function getLocalResponse(query: string): string {
   if (q.includes('experience') || q.includes('work') || q.includes('job') || q.includes('intern') || q.includes('career') || q.includes('resume') || q.includes('cv') || q.includes('company')) return LOCAL_RESPONSES.experience;
   if (q.includes('contact') || q.includes('phone') || q.includes('email') || q.includes('reach') || q.includes('linkedin') || q.includes('call')) return LOCAL_RESPONSES.contact;
   if (q.includes('available') || q.includes('remote') || q.includes('freelance') || q.includes('contract') || q.includes('open to')) return LOCAL_RESPONSES.availability;
+  
   return LOCAL_RESPONSES.fallback;
 }
 

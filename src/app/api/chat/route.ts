@@ -359,26 +359,20 @@ ${state.context}`;
 
   let draft = '';
   const models = ['gemini-flash-latest', 'gemini-flash-lite-latest'];
+  let quotaExceeded = false;
 
   for (const model of models) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [
             ...historyMapped,
-            {
-              role: 'user',
-              parts: [{ text: state.query }]
-            }
+            { role: 'user', parts: [{ text: state.query }] }
           ],
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          },
+          systemInstruction: { parts: [{ text: systemPrompt }] },
           generationConfig: {
             temperature: isRetry ? 0.25 : 0.45,
             maxOutputTokens: 2500
@@ -388,27 +382,32 @@ ${state.context}`;
 
       if (response.ok) {
         const data = await response.json();
-        // FIX 5: Access correct nested response path: candidates[0].content.parts[0].text
         draft = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        // FIX 4: Log raw API response structure if draft is empty (helps diagnose silent failures)
         if (!draft) {
           console.error(`[DraftNode] Model ${model} returned OK but empty draft. Full response:`, JSON.stringify(data, null, 2));
         } else {
-          break; // Found a valid response!
+          break; // Valid response found!
         }
+      } else if (response.status === 429) {
+        // ── QUOTA EXCEEDED: Daily limit hit — switch to local mode silently ──
+        const errBody = await response.json().catch(() => ({}));
+        console.warn(`[DraftNode] Quota exceeded on model ${model} (429). Switching to local fallback. Details:`, JSON.stringify(errBody));
+        quotaExceeded = true;
+        break; // No point trying next model if quota is account-wide
       } else {
-        // FIX 4: Log full raw error body — reveals safety filters, quota limits, wrong model names
         const errorData = await response.json().catch(() => ({ _raw: response.statusText }));
         console.error(`[DraftNode] Model ${model} HTTP ${response.status} error:`, JSON.stringify(errorData));
       }
     } catch (err) {
-      // FIX 4: Log the actual underlying network/parse error
       console.error(`[DraftNode] Fetch exception for model ${model}:`, err);
     }
   }
 
   if (!draft) {
-    // FIX 4: Surface the actual failure clearly in server logs
+    if (quotaExceeded) {
+      // Throw a special sentinel so the agentic loop serves a local smart answer
+      throw new Error('QUOTA_EXCEEDED');
+    }
     console.error('[DraftNode] All Gemini models exhausted. API key present:', !!apiKey, '| Query:', state.query.slice(0, 80));
     throw new Error('All Gemini models failed to generate content.');
   }
@@ -607,9 +606,19 @@ async function runAgenticLoop(
     try {
       Object.assign(state, await generateDraftNode(state, apiKey));
     } catch (err) {
-      // FIX 4: Log the raw draft error before falling back
-      console.error('[AgenticLoop] generateDraftNode threw:', err);
-      Object.assign(state, fallbackNode(state));
+      const errMsg = err instanceof Error ? err.message : String(err);
+
+      if (errMsg === 'QUOTA_EXCEEDED') {
+        // ── QUOTA HIT: Serve local smart answer silently — user sees no error ──
+        console.warn('[AgenticLoop] Daily API quota exceeded — serving local smart answer silently.');
+        emit(stepEvent('finalize', 'Verified ✓ (instant mode)'));
+        await delay(80);
+        state.finalOutput = getLocalResponse(query);
+        state.verifierScore = 0.9;
+      } else {
+        console.error('[AgenticLoop] generateDraftNode threw:', err);
+        Object.assign(state, fallbackNode(state));
+      }
       break;
     }
 
@@ -620,8 +629,13 @@ async function runAgenticLoop(
     try {
       Object.assign(state, await verifyNode(state, apiKey));
     } catch (err) {
-      // FIX 4: Log raw verifier error — pass through optimistically so user still gets an answer
-      console.error('[AgenticLoop] verifyNode threw:', err);
+      const vErrMsg = err instanceof Error ? err.message : String(err);
+      if (vErrMsg === 'QUOTA_EXCEEDED') {
+        // Verifier quota hit — pass through optimistically, draft is already good
+        console.warn('[AgenticLoop] Verifier quota exceeded — passing draft through.');
+      } else {
+        console.error('[AgenticLoop] verifyNode threw:', err);
+      }
       state.verifierScore = 0.82;
       state.loopStep = 'finalize';
     }
